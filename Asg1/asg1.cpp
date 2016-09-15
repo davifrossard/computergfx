@@ -6,18 +6,18 @@
 using namespace std;
 
 GLfloat center_x, center_y, size_x, size_y;
-GLfloat poly_color_r, poly_color_g, poly_color_b;
-GLfloat background_color_r, background_color_g, background_color_b;
+GLfloat poly_color_r = 1, poly_color_g = 1, poly_color_b = 1;
+GLfloat background_color_r = 0, background_color_g = 0, background_color_b = 0;
+GLfloat win_w = 1280, win_h = 720;
 GLfloat click_delta_x, click_delta_y;
-GLfloat win_w, win_h;
 enum machine_states {CREATE = 0, DRAG = 1, NONE = 2} state;
 const char * const configs[] = { "janela", "largura", "altura", "fundo", "titulo", "quadrado", "tamanho", "corR", "corG", "corB"};
 //                                  0          1         2         3        4           5          6         7       8       9
      
 void display() {  
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(background_color_r, background_color_g, background_color_b, 1);  
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0); //Use {[0,1], [0,1], [-1, 1]} coordinate system
@@ -127,8 +127,8 @@ void reshape(int w, int h)
 }
 
 int main(int argc, char** argv) { 
-    float poly_size = 0;
-    char* title;
+    float poly_size = 50;
+    char* title = "Assignment 1";
     if(argc < 2) {
         printf("Please provide configuration file\n");
         return 0;
@@ -139,8 +139,8 @@ int main(int argc, char** argv) {
         printf("Invalid configuration file\n");
         return 0;
     }
-    size_x = (float)poly_size / win_w;
-    size_y = (float)poly_size / win_h;
+    size_x = (float) poly_size / win_w;
+    size_y = (float) poly_size / win_h;
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);    
     glutInitWindowSize(win_w,win_h);         
