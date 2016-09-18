@@ -121,6 +121,8 @@ int parseXML(const char* file, float& poly_size, char** title)
 
 void reshape(int w, int h)
 {
+	size_x /= (GLfloat)w / win_w;
+    size_y /= (GLfloat)h / win_h;
 	win_w = w;
 	win_h = h;
 	glViewport(0, 0, (GLsizei) w, (GLsizei) h);
@@ -141,6 +143,7 @@ int main(int argc, char** argv) {
     }
     size_x = (float) poly_size / win_w;
     size_y = (float) poly_size / win_h;
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);    
     glutInitWindowSize(win_w,win_h);         
