@@ -9,7 +9,7 @@ ASGC = $(wildcard *.cpp)
 EXEC = trabalhocg
 RUNARGS = ./
 
-all: run
+all: $(EXEC)
 	
 $(EXEC): $(TXMLO) $(ASGC)
 	$(CC2) $(ASGC) $(TXMLO) $(CC2_FLAGS) -o $(EXEC) $(FLAGS)

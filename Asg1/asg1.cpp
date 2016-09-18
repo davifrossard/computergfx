@@ -62,24 +62,28 @@ void mouse_click(int btn, int st, int mx, int my)
 {
     float x = (float)mx/win_w;
     float y = (float)(win_h-my)/win_h;
-    if(state == CREATE && btn == 0) {// Draw square
-        state = DRAG;
-        center_x = x;
-        center_y = y;
-        glutPostRedisplay();
-    } else if(click_in_square(x, y) == 1) { // Click inside square
-        if(btn == 0) {// Left click, drag square
-            click_delta_x = x - center_x;
-            click_delta_y = y - center_y;
-            state = DRAG;
-        } else if(btn == 2) {// Right click, delete square
-            state = CREATE;
+    if(st == 0) { // Ignore button unpresses
+        if(state == CREATE && btn == 0) {// Draw square
+            state = NONE;
+            center_x = x;
+            center_y = y;
             glutPostRedisplay();
+        } else if(state != CREATE && click_in_square(x, y) == 1) { // Click inside square
+            if(btn == 0) { // Left click, drag square
+                click_delta_x = x - center_x;
+                click_delta_y = y - center_y;
+                state = DRAG;
+            } else if(btn == 2) { // Right click, delete square
+                state = CREATE;
+                glutPostRedisplay();
+            } else { // Meaningless click
+                state = NONE;
+            }
+        } else { // Meaningless click
+            if (state == DRAG)
+                state = NONE;
         }
-    } else { // Meaningless click
-        state = NONE;
     }
-    
 }
 
 int parseXML(const char* file, float& poly_size, char** title)
