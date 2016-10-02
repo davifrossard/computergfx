@@ -1,0 +1,9 @@
+<aplicacao>
+	<janela>
+		<largura>1280</largura>
+		<altura>720</altura>
+		<fundo corR="0" corG="0" corB="1"></fundo>
+		<titulo>Quadradeta</titulo>
+	</janela>
+	<quadrado tamanho="30" corR="1" corG="1" corB="1"></quadrado>
+</aplicacao>
