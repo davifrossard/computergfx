@@ -29,7 +29,7 @@ void display() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(get<0>(track[0])-get<2>(track[0]), get<0>(track[0])+get<2>(track[0]), 
-            get<1>(track[0])-get<2>(track[0]), get<1>(track[0])+get<2>(track[0]), 
+            get<1>(track[0])+get<2>(track[0]), get<1>(track[0])-get<2>(track[0]), 
             -1.0, 1.0); //Use {[cx-r,cx+r], [cy-r,cy+r], [-1, 1]} coordinate system
     float cx, cy, r;
     GLfloat* color;
@@ -220,7 +220,7 @@ void idle(void) {
     float inc = MOV_SPEED*win_size;
     float cx_prime = get<0>(player), cy_prime = get<1>(player);
     if(key_status['w'] == 1 || key_status['W'] == 1) {
-        cy_prime += inc;
+        cy_prime -= inc;
         if(check_move(cx_prime, cy_prime) == 1)
         {
             get<0>(player) = cx_prime;
@@ -228,7 +228,7 @@ void idle(void) {
         }
     } 
     if(key_status['s'] == 1 || key_status['S'] == 1) {
-        cy_prime -= inc;
+        cy_prime += inc;
         if(check_move(cx_prime, cy_prime) == 1)
         {
             get<0>(player) = cx_prime;
