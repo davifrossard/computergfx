@@ -6,6 +6,8 @@
 #include <vector>
 #include <unordered_map>
 #include <sstream>
+#include <wordexp.h>
+#include <unistd.h>
 #include "TinyXML/tinyxml.h"
 #include "colours.h"
 using namespace std;
@@ -106,15 +108,15 @@ void display() {
     
 }
 
-int parseXML(const char* file)
+int parseXML(string path)
 {
     unordered_map<string, GLfloat*> colors = create_color_table(); //Color hash
     TiXmlDocument config;
-    config.LoadFile(file);  
+    chdir(path.c_str());
+    config.LoadFile("config.xml");  
     TiXmlElement* root = config.FirstChildElement();
     if(!root)
         return 0;
-        
     // Read configuration file
     string img;
     for(TiXmlElement* elem = root->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement()) {
@@ -130,11 +132,17 @@ int parseXML(const char* file)
     }
     
     TiXmlDocument imagefile;
-    imagefile.LoadFile(img.c_str());  
+    
+    // Expand image path shell variables
+    wordexp_t img_dir;
+    wordexp(img.c_str(), &img_dir, 0);
+    imagefile.LoadFile(img_dir.we_wordv[0]);  
+    wordfree(&img_dir);
+    
+    // Open image file
     TiXmlElement* root2 = imagefile.FirstChildElement();
     if(!root2)
         return 0;
-        
     // Read image file
     for(TiXmlElement* elem = root2->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement()) {
         string elemName = elem->Value();
@@ -261,7 +269,6 @@ int main(int argc, char** argv) {
         return 0;
     }
     string buffer = argv[1];
-    buffer+="/config.xml";
 
     if(parseXML(buffer.c_str()) == 0) {
         printf("Invalid configuration file\n");
