@@ -23,4 +23,9 @@ struct circle {
   GLfloat* color;
 };
 
+struct projectile {
+  point origin;
+  GLfloat angle;
+};
+
 #endif

@@ -1,64 +1,9 @@
 #include "car.h"
-#define NUM_CIRC_POLYGONS 30
 #define check_max_x(x) max_attr_x = max(max_attr_x, x)
 #define check_max_y(x) max_attr_y = max(max_attr_y, x)
 
 using namespace std;
 
-
-void Car::_draw_circle(GLfloat radius, GLfloat* color)
-{
-  GLfloat r = radius / max_attr;
-  glColor3fv(color);
-  glBegin( GL_TRIANGLE_FAN );
-    glVertex3f(0, 0, 0);
-    for(int i = 0; i <= NUM_CIRC_POLYGONS; i++)
-    {
-      double theta =  i * 2 * M_PIl / NUM_CIRC_POLYGONS;
-      glVertex3f(r * cosf(theta), r * sinf(theta), 0);
-    }
-  glEnd();
-}
-
-void Car::_draw_rectangle(GLfloat height, GLfloat width, GLfloat* color)
-{
-  GLfloat h = height/max_attr;
-  GLfloat w = width/max_attr;
-  glBegin(GL_POLYGON);
-    glColor3fv(color);
-    glVertex3f(0, 0, 0);
-    glVertex3f(0, h, 0);
-    glVertex3f(w, h, 0);
-    glVertex3f(w, 0, 0);
-  glEnd();
-}
-
-void Car::_draw_wheel(GLfloat height, GLfloat width, GLfloat* color)
-{
-  _draw_rectangle(height, width, color);
-  GLfloat h = height/max_attr;
-  GLfloat w = width/max_attr;
-  float mark_height = wheel_mark * h / 180;
-  glTranslatef(0.1*w, mark_height, 0);
-  glLineWidth(2.5);
-  glColor3f(1.0, 0.0, 0.0);
-  glBegin(GL_LINES);
-    glVertex3f(0.0, 0.0, 0.0);
-    glVertex3f(0.8*w, 0, 0);
-  glEnd();
-}
-
-void Car::_draw_iso_triangle(GLfloat height, GLfloat width, GLfloat* color)
-{
-  GLfloat h = height/max_attr;
-  GLfloat w = width/max_attr;
-  glBegin(GL_POLYGON);
-    glColor3fv(color);
-    glVertex3f(0, 0, 0);
-    glVertex3f(w, 0, 0);
-    glVertex3f(w/2., h, 0);
-  glEnd();
-}
 
 triangle Car::_read_triangle(TiXmlElement* elem)
 {
@@ -102,6 +47,21 @@ rectangle Car::_read_rectangle(TiXmlElement* elem)
   return rect;
 }
 
+void Car::_draw_wheel(GLfloat height, GLfloat width, GLfloat* color)
+{
+  _draw_rectangle(height, width, color);
+  GLfloat h = height;
+  GLfloat w = width;
+  float mark_height = wheel_mark * h / 180;
+  glTranslatef(0.1*w, mark_height, 0);
+  glLineWidth(5);
+  glColor3f(1.0, 0.0, 0.0);
+  glBegin(GL_LINES);
+    glVertex3f(0.0, 0.0, 0.0);
+    glVertex3f(0.8*w, 0, 0);
+  glEnd();
+}
+
 void Car::_draw_front_wheels()
 {
   point l_wheel_center, r_wheel_center;
@@ -113,7 +73,7 @@ void Car::_draw_front_wheels()
   glTranslatef(l_wheel_center.x, l_wheel_center.y, 0);
   glRotatef(wheel_angle, 0, 0, 1); // Rotate around connection joint
   glTranslatef(-front_left_wheel.w/(2*max_attr), -front_left_wheel.h/(2*max_attr), 0);
-    _draw_wheel(front_left_wheel.h, front_left_wheel.w, front_left_wheel.color);
+    _draw_wheel(front_left_wheel.h/max_attr, front_left_wheel.w/max_attr, front_left_wheel.color);
   glPopMatrix();
 
   // Front Left Wheel
@@ -123,7 +83,7 @@ void Car::_draw_front_wheels()
   glTranslatef(r_wheel_center.x, r_wheel_center.y, 0);
   glRotatef(wheel_angle, 0, 0, 1); // Rotate around connection joint
   glTranslatef(-front_right_wheel.w/(2*max_attr), -front_right_wheel.h/(2*max_attr), 0);
-    _draw_wheel(front_right_wheel.h, front_right_wheel.w, front_right_wheel.color);
+    _draw_wheel(front_right_wheel.h/max_attr, front_right_wheel.w/max_attr, front_right_wheel.color);
   glPopMatrix();
 }
 
@@ -138,11 +98,11 @@ void Car::_draw_cannon()
   glTranslatef(cannon_joint.x, cannon_joint.y, 0);
   glRotatef(cannon_angle, 0, 0, 1); // Rotate around connection joint
   glTranslatef(-cannon.w/(2*max_attr), -cannon.h/max_attr, 0);
-    _draw_rectangle(cannon.h, cannon.w, cannon.color);
+    _draw_rectangle(cannon.h/max_attr, cannon.w/max_attr, cannon.color);
     float delta_x = cannon_tip.center.x - cannon.origin.x;
     float delta_y = cannon_tip.center.y - cannon.origin.y;
     glTranslatef(delta_x/max_attr, delta_y/max_attr, 0);
-    _draw_circle(cannon_tip.r, cannon_tip.color);
+    _draw_circle(cannon_tip.r/max_attr, cannon_tip.color);
   glPopMatrix();
 }
 
@@ -159,11 +119,11 @@ int Car::_read_xml(const char* file)
     string elemName = elem->Value();
     string elemId = elem->Attribute("id");
     if(elemId == "R_AXIS") { // Front axis
-      rear_axis = _read_rectangle(elem);
-      rear_axis.color = colors[elem->Attribute("fill")];
+      rear_axle = _read_rectangle(elem);
+      rear_axle.color = colors[elem->Attribute("fill")];
     } else if(elemId == "F_AXIS") { // Front axis
-      front_axis = _read_rectangle(elem);
-      front_axis.color = colors[elem->Attribute("fill")];
+      front_axle = _read_rectangle(elem);
+      front_axle.color = colors[elem->Attribute("fill")];
     } else if(elemId == "LF_WHEEL") { // Front axis
       front_left_wheel = _read_rectangle(elem);
       front_left_wheel.color = colors[elem->Attribute("fill")];
@@ -199,6 +159,8 @@ int Car::_read_xml(const char* file)
     }
   }
   max_attr = max(max_attr_x, max_attr_y);
+  axle_width = front_axle.w;
+  axle_track = abs(front_axle.origin.y - rear_axle.origin.y);
 }
 
 Car::Car(string file)
@@ -212,14 +174,14 @@ void Car::draw_car()
   glTranslatef(-max_attr_x/(2*max_attr), -max_attr_y/(2*max_attr), 0);
     // Front Axis
     glPushMatrix();
-    glTranslatef(front_axis.origin.x/max_attr, front_axis.origin.y/max_attr, 0);
-      _draw_rectangle(front_axis.h, front_axis.w, front_axis.color);
+    glTranslatef(front_axle.origin.x/max_attr, front_axle.origin.y/max_attr, 0);
+      _draw_rectangle(front_axle.h/max_attr, front_axle.w/max_attr, front_axle.color);
     glPopMatrix();
 
     // Rear Axis
     glPushMatrix();
-    glTranslatef(rear_axis.origin.x/max_attr, rear_axis.origin.y/max_attr, 0);
-      _draw_rectangle(rear_axis.h, rear_axis.w, rear_axis.color);
+    glTranslatef(rear_axle.origin.x/max_attr, rear_axle.origin.y/max_attr, 0);
+      _draw_rectangle(rear_axle.h/max_attr, rear_axle.w/max_attr, rear_axle.color);
     glPopMatrix();
 
     // Draw Front Wheels
@@ -231,13 +193,13 @@ void Car::draw_car()
     // Rear Left Wheel
     glPushMatrix();
     glTranslatef(rear_left_wheel.origin.x/max_attr, rear_left_wheel.origin.y/max_attr, 0);
-      _draw_wheel(rear_left_wheel.h, rear_left_wheel.w, rear_left_wheel.color);
+      _draw_wheel(rear_left_wheel.h/max_attr, rear_left_wheel.w/max_attr, rear_left_wheel.color);
     glPopMatrix();
 
     // Rear Right Wheel
     glPushMatrix();
     glTranslatef(rear_right_wheel.origin.x/max_attr, rear_right_wheel.origin.y/max_attr, 0);
-      _draw_wheel(rear_right_wheel.h, rear_right_wheel.w, rear_right_wheel.color);
+      _draw_wheel(rear_right_wheel.h/max_attr, rear_right_wheel.w/max_attr, rear_right_wheel.color);
     glPopMatrix();
 
     // Cockpit
@@ -245,47 +207,68 @@ void Car::draw_car()
     glTranslatef(cockpit.p[1].x/max_attr, cockpit.p[1].y/max_attr, 0);
       GLfloat w = (cockpit.p[0].x - cockpit.p[1].x);
       GLfloat h = -(cockpit.p[0].y - cockpit.p[2].y);
-      _draw_iso_triangle(h, w, cockpit.color);
+      _draw_iso_triangle(h/max_attr, w/max_attr, cockpit.color);
     glPopMatrix();
 
     // Chassis
     glPushMatrix();
     glTranslatef(chassis.origin.x/max_attr, chassis.origin.y/max_attr, 0);
-      _draw_rectangle(chassis.h, chassis.w, chassis.color);
+      _draw_rectangle(chassis.h/max_attr, chassis.w/max_attr, chassis.color);
     glPopMatrix();
 
     // Spoiler
     glPushMatrix();
     glTranslatef(spoiler.origin.x/max_attr, spoiler.origin.y/max_attr, 0);
-      _draw_rectangle(spoiler.h, spoiler.w, spoiler.color);
+      _draw_rectangle(spoiler.h/max_attr, spoiler.w/max_attr, spoiler.color);
     glPopMatrix();
 
     // Driver
     glPushMatrix();
     glTranslatef(driver.center.x/max_attr, driver.center.y/max_attr, 0);
-      _draw_circle(driver.r, driver.color);
+      _draw_circle(driver.r/max_attr, driver.color);
     glPopMatrix();
   glPopMatrix();
 }
 
-void Car::turn_wheel(float degrees)
+float Car::turn_wheel(float degrees)
 {
   wheel_angle += degrees;
   wheel_angle = max((float)-45, min(wheel_angle, (float)45));
+  return wheel_angle;
 }
 
-void Car::turn_cannon(float degrees)
+float Car::turn_cannon(float degrees)
 {
   cannon_angle = degrees;
+  return cannon_angle;
 }
 
 void Car::forward()
 {
   wheel_mark = wheel_mark > 0 ? wheel_mark - 5 : 180;
-  printf ("%f\n", wheel_mark);
 }
 
 void Car::back()
 {
   wheel_mark = wheel_mark < 180 ? wheel_mark + 5 : 0;
+}
+
+float Car::get_axle_track()
+{
+  return axle_track/max_attr;
+}
+
+float Car::get_axle_width()
+{
+  return axle_width/max_attr;
+}
+
+float Car::get_cannon_len()
+{
+  return (chassis.origin.y - driver.center.y )/max_attr;
+}
+
+float Car::get_max_attr()
+{
+  return max_attr;
 }

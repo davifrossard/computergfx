@@ -5,7 +5,7 @@ CC2 = g++
 CC2_FLAGS = -lGLU -lGL -lglut -lm -w -Wall -std=c++0x
 TXML = $(wildcard TinyXML/*.cpp)
 TXMLO = $(TXML:.cpp=.o)
-ASGC = $(wildcard *.cpp Classes/*.cpp)
+ASGC = $(wildcard *.cpp)
 EXEC = trabalhocg
 RUNARGS = ./
 
