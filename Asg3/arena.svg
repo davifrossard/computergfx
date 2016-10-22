@@ -24,12 +24,6 @@
      r="20"
      fill="red"
      id="Inimigo" />
-<circle
- cx="512"
- cy="276"
- r="20"
- fill="red"
-id="Inimigo" />
   <circle
      cx="257"
      cy="578"

@@ -26,8 +26,6 @@ class Arena
     circle player;
     float max_attr = 0;
     float outer_radius = 0;
-    const char * const configs[4] = {"arquivoDaArena", "nome", "tipo", "caminho"};
-    const string ids[4] = {"Pista", "LargadaChegada", "Inimigo", "Jogador"};
     float minx, miny;
 
     circle _read_circle(TiXmlElement* elem);

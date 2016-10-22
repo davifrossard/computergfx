@@ -22,28 +22,10 @@ rectangle Arena::_read_rectangle(TiXmlElement* elem)
   return rect;
 }
 
-int Arena::_read_xml(string path)
+int Arena::_read_xml(string img)
 {
+  const string ids[4] = {"Pista", "LargadaChegada", "Inimigo", "Jogador"};
   unordered_map<string, GLfloat*> colors = create_color_table(); //Color hash
-  TiXmlDocument config;
-  chdir(path.c_str());
-  config.LoadFile("config.xml");
-  TiXmlElement* root = config.FirstChildElement();
-  if(!root)
-    return 0;
-  // Read configuration file
-  string img;
-  for(TiXmlElement* elem = root->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement()) {
-    string elemName = elem->Value();
-    if(elemName == configs[0]) {
-      const char* file = elem->Attribute(configs[1]);
-      const char* ext = elem->Attribute(configs[2]);
-      const char* path = elem->Attribute(configs[3]);
-      stringstream ss;
-      ss << path << "/" << file << "." << ext;
-      img = ss.str();
-    }
-  }
   TiXmlDocument imagefile;
   // Expand image path shell variables
   wordexp_t img_dir;
@@ -54,7 +36,10 @@ int Arena::_read_xml(string path)
   // Open image file
   TiXmlElement* root2 = imagefile.FirstChildElement();
   if(!root2)
-      return 0;
+  {
+    printf("Invalid arena file.\n");
+    exit(0);
+  }
   // Read image file
   for(TiXmlElement* elem = root2->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement()) {
     string elemId = elem->Attribute("id");
