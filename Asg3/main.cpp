@@ -34,7 +34,7 @@ void keydown(unsigned char key, int x, int y)
 
 void draw_point()
 {
-  glPointSize(10);
+  glPointSize(5);
   glBegin(GL_POINTS);
     glColor3f(1, 0, 0);
     glVertex3f(0, 0, 0);
@@ -51,21 +51,21 @@ void display() {
   glPushMatrix();
   glTranslatef(0.5, 0.5, 0);
     arena->draw_arena();
+  glPopMatrix();
 
-    glPushMatrix();
-      glScalef(car_to_arena, car_to_arena, 0);
-      for (vector<projectile>::iterator p = shots.begin(); p != shots.end(); p++)
-      {
-        glPushMatrix();
-        glTranslatef(p->origin.x, p->origin.y, 0);
-        glRotatef(p->angle*180/M_PIl, 0, 0, 1);
-          draw_point();
-        glPopMatrix();
-      }
-      glTranslatef(x, y, 0);
-      glRotatef(theta*180/M_PIl, 0, 0, 1);
-      player->draw_car();
-    glPopMatrix();
+  glPushMatrix();
+  glScalef(car_to_arena, car_to_arena, 0);
+    for (vector<projectile>::iterator p = shots.begin(); p != shots.end(); p++)
+    {
+      glPushMatrix();
+      glTranslatef(p->origin.x, p->origin.y, 0);
+      glRotatef(p->angle*180/M_PIl, 0, 0, 1);
+        draw_point();
+      glPopMatrix();
+    }
+    glTranslatef(x, y, 0);
+    glRotatef(theta*180/M_PIl, 0, 0, 1);
+    player->draw_car();
   glPopMatrix();
   glutSwapBuffers();
   last_time = glutGet(GLUT_ELAPSED_TIME);
@@ -191,8 +191,8 @@ int main(int argc, char** argv) {
   player = new Car(car_file);
 
   // Transformation constants
-  arena_to_car = (arena->get_max_attr() / arena->get_player_diameter()) / player->get_max_attr(); // Transfer from arena to car
-  car_to_arena = player->get_max_attr() / (arena->get_max_attr() / arena->get_player_diameter()); // Transfer from car to arena
+  car_to_arena = arena->get_player_diameter(); // Transfer from car to arena
+  arena_to_car = 1/car_to_arena; // Transfer from arena to car
 
   // Set car configurations
   velTiro = get<1>(configs) * car_to_arena; // Shot speed
