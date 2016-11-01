@@ -36,6 +36,12 @@
      r="20"
      fill="red"
      id="Inimigo" />
+    <circle
+     cx="289"
+     cy="366"
+     r="20"
+     fill="red"
+    id="Inimigo" />
   <circle
      cx="717"
      cy="501"

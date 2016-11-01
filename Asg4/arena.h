@@ -10,7 +10,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include "draw_functions.h"
-#include "car.h"
+#include <unordered_map>
 #include "primitives.h"
 #include "colours.h"
 #include "TinyXML/tinyxml.h"
@@ -21,7 +21,7 @@ class Arena
   private:
     circle inner_circle;
     circle outer_circle;
-    vector<circle> enemies;
+    unordered_map<int, circle> enemies;
     rectangle start;
     circle player;
     float max_attr = 0;
@@ -35,14 +35,19 @@ class Arena
   public:
     Arena(string path);
     void draw_arena();
-    void draw_player(Car* player);
     float get_max_attr();
     float get_player_diameter();
     point get_player_position();
+    point get_center();
+    point get_enemy_position(int id);
     void set_player_position(point);
+    void set_enemy_position(int id, point);
     bool check_player_colision(point p);
+    bool check_enemy_colision(int id, point p);
     int get_num_enemies();
-    vector<circle> get_enemies();
+    unordered_map<int,circle> get_enemies();
+    void delete_enemy(int id);
+    int check_player_checkpoint(point p);
 };
 
 #endif

@@ -8,14 +8,14 @@
 using namespace std;
 
 Car* player;
-vector<Car*> enemies;
+unordered_map<int,Car*> enemies;
+unordered_map<string, GLfloat*> colors;
 Arena* arena;
+bool alive = 1, win = 0;
+char current_time[10];
 int key_status[256];
-GLfloat x, y, theta = 0;
-float cannon_angle, velTiro, velCarro;
+float velTiro, velCarro;
 float car_to_arena, arena_to_car;
-
-vector<projectile> shots;
 
 float sign(float x)
 {
@@ -34,17 +34,7 @@ void keydown(unsigned char key, int x, int y)
     int i;
 }
 
-void draw_point()
-{
-  glPointSize(5);
-  glBegin(GL_POINTS);
-    glColor3f(1, 0, 0);
-    glVertex3f(0, 0, 0);
-  glEnd();
-}
-
 void display() {
-  static float last_time = glutGet(GLUT_ELAPSED_TIME);
   glClearColor(1, 1, 1, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
@@ -53,40 +43,37 @@ void display() {
   glPushMatrix();
   glTranslatef(0.5, 0.5, 0);
     arena->draw_arena();
+    _draw_text(0., 0., current_time, colors["black"]);
+    if(!alive) _draw_text(0., -0.02, "MORREU", colors["red"], GLUT_BITMAP_HELVETICA_18);
+    if(win) _draw_text(0., -0.02, "GANHOU", colors["green"], GLUT_BITMAP_HELVETICA_18);
   glPopMatrix();
 
   glPushMatrix();
   glScalef(car_to_arena, car_to_arena, 0);
-    for (vector<projectile>::iterator p = shots.begin(); p != shots.end(); p++)
-    {
+    for(auto ek : enemies) {
+      Car* e = ek.second;
       glPushMatrix();
-      glTranslatef(p->origin.x, p->origin.y, 0);
-      glRotatef(p->angle*180/M_PIl, 0, 0, 1);
-        draw_point();
+        e->draw_car();
       glPopMatrix();
     }
-    glTranslatef(x, y, 0);
-    glRotatef(theta*180/M_PIl, 0, 0, 1);
-    player->draw_car();
+    glPushMatrix();
+      player->draw_car();
+    glPopMatrix();
   glPopMatrix();
+
   glutSwapBuffers();
-  last_time = glutGet(GLUT_ELAPSED_TIME);
 }
 
 void control_cannon(int x, int y)
 {
-  cannon_angle = player->turn_cannon(x * (45 - (-45)) / (1000) + (-45));
+  player->turn_cannon(x * (45 - (-45)) / (1000) + (-45));
 }
 
 void shoot_cannon(int button, int state, int mx, int my)
 {
     if(button == 0 && state == 0)
     {
-      projectile shot;
-      shot.origin.x = x-player->get_cannon_len()*sin(theta);
-      shot.origin.y = y+player->get_cannon_len()*cos(theta);
-      shot.angle = theta + cannon_angle*M_PIl/180;
-      shots.push_back(shot);
+      player->shoot();
     }
 }
 
@@ -99,46 +86,45 @@ void reshape(int w, int h)
 }
 
 void idle(void) {
-  static float last_time = glutGet(GLUT_ELAPSED_TIME);
-  tuple<float, float> result;
-  float inc = 0;
-  static float wheel_angle = 0;
-  float elapsed_time = glutGet(GLUT_ELAPSED_TIME) - last_time;
-  if(key_status['a'] == 1 || key_status['A'] == 1) {
-    wheel_angle = player->turn_wheel(-1);
-  } if(key_status['d'] == 1 || key_status['D'] == 1) {
-    wheel_angle = player->turn_wheel(1);
-	} if(key_status['w'] == 1 || key_status['A'] == 1) {
-    inc -= velCarro * elapsed_time;
-    player->forward();
-	} if(key_status['s'] == 1 || key_status['S'] == 1) {
-    inc += velCarro * elapsed_time;
-    player->back();
-	}
-  float thetap = theta + inc / player->get_axle_track() * tan(-wheel_angle * M_PIl/180);
-  float xp = x + inc * sin(-thetap);
-  float yp = y + inc * cos(-thetap);
-  point p = {xp * car_to_arena, yp * car_to_arena};
-  if(arena->check_player_colision(p))
-  {
-    theta = thetap;
-    x = xp;
-    y = yp;
-    arena->set_player_position(p);
+  if(alive && !win) {
+    static float last_time = glutGet(GLUT_ELAPSED_TIME);
+    tuple<float, float> result;
+    float inc = 0;
+    float elapsed_time = glutGet(GLUT_ELAPSED_TIME) - last_time;
+    if(key_status['a'] == 1 || key_status['A'] == 1) {
+      player->turn_wheel(-1);
+    } if(key_status['d'] == 1 || key_status['D'] == 1) {
+      player->turn_wheel(1);
+  	} if(key_status['w'] == 1 || key_status['W'] == 1) {
+      inc -= velCarro * elapsed_time;
+      win = player->forward(inc);
+  	} if(key_status['s'] == 1 || key_status['S'] == 1) {
+      inc += velCarro * elapsed_time;
+      win = player->back(inc);
+  	}
+    if(win)
+      glutPostRedisplay();
+    player->update_shots(velTiro * elapsed_time, &enemies, player);
+    for(auto ck : enemies) {
+      Car* c = ck.second;
+      c->auto_forward(-velCarro * elapsed_time);
+      c->auto_turn_cannon();
+      if((rand() % 100) >= 91)
+        c->shoot();
+      if(c->update_shots(velTiro * elapsed_time, &enemies, player))
+      {
+        alive = 0;
+        glutPostRedisplay();
+      }
+
+    }
+
+    last_time = glutGet(GLUT_ELAPSED_TIME);
+    int seconds = last_time / 1000;
+    int minutes = seconds / 60;
+    sprintf(current_time, "%02d:%02d:%02d", minutes, seconds%60, (int)last_time%1000);
+    glutPostRedisplay();
   }
-  for (vector<projectile>::iterator p = shots.begin(); p != shots.end();)
-  {
-    p->origin.x += velTiro * elapsed_time * sin(p->angle);
-    p->origin.y -= velTiro * elapsed_time * cos(p->angle);
-    float px = p->origin.x * car_to_arena;
-    float py = p->origin.y * car_to_arena;
-    if(px > 1 || px < 0 || py > 1 || py < 0)
-      p = shots.erase(p);
-    else
-      p++;
-  }
-  last_time = glutGet(GLUT_ELAPSED_TIME);
-	glutPostRedisplay();
 }
 
 
@@ -176,6 +162,7 @@ tuple<string,float,float> parseXML(string path)
 
 
 int main(int argc, char** argv) {
+  srand(time(NULL)); // Seed generator
   // Read configuration file
   if(argc < 2) {
       printf("Please provide configuration file\n");
@@ -188,27 +175,25 @@ int main(int argc, char** argv) {
   string afile = get<0>(configs); // Get arena file
   arena = new Arena(afile); // Read arena file
 
-  // Read car
+  // Create player vehicle
   string car_file = "car.svg";
-  player = new Car(car_file, -1, NULL);
+  player = new Car(car_file, -1, NULL, arena);
+
+  // Create enemy vehicles
+  for(auto ek : arena->get_enemies())
+  {
+    Car* enemy = new Car(car_file, ek.first, ek.second.color, arena);
+    enemies[ek.first] = enemy;
+  }
 
   // Transformation constants
   car_to_arena = arena->get_player_diameter(); // Transfer from car to arena
   arena_to_car = 1/car_to_arena; // Transfer from arena to car
-
-  // Create enemy vehicles
-  int count = 0;
-  for(circle e : arena->get_enemies())
-  {
-    Car* enemy = new Car(car_file, count++, e.color);
-  }
-
-  // Set car configurations
   velTiro = get<1>(configs) * car_to_arena; // Shot speed
   velCarro = get<2>(configs) * car_to_arena; // Car speed
-  point player_position = arena->get_player_position(); // Get Initial position
-  x = player_position.x * arena_to_car; // Set player initial position
-  y = player_position.y * arena_to_car;
+
+  // Color table
+  colors = create_color_table(); //Color hash
 
   // Glut stuff
   glutInit(&argc, argv);

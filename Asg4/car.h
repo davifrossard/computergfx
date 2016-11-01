@@ -6,6 +6,7 @@
 #include <tuple>
 #include <GL/gl.h>
 #include <GL/glut.h>
+#include "arena.h"
 #include "draw_functions.h"
 #include "primitives.h"
 #include "colours.h"
@@ -29,12 +30,17 @@ class Car
     circle cannon_tip;
     int id;
     GLfloat* car_color;
+    GLfloat x, y, theta = 0;
+    GLfloat cx, cy;
     float max_attr = 1, max_attr_x = 0, max_attr_y = 0;
-    float wheel_angle;
-    float cannon_angle;
+    float wheel_angle, cannon_angle;
+    float axle_track, axle_width;
     float wheel_mark;
-    float axle_track;
-    float axle_width;
+    Arena* arena;
+    float car_to_arena;
+    vector<projectile> shots;
+    int stuck_count = 0, sig_inc = 1;
+    int score = 0, last_checkpoint = 0, expected_checkpoint = 1;
 
     void _draw_wheel(GLfloat height, GLfloat width, GLfloat* color);
     triangle _read_triangle(TiXmlElement* elem);
@@ -45,16 +51,20 @@ class Car
     int _read_xml(const char* file, GLfloat* color);
 
   public:
-    Car(string file, int id, GLfloat* color);
+    Car(string file, int id, GLfloat* color, Arena* arena);
     void draw_car();
-    float turn_wheel(float degrees);
     float get_axle_track();
     float get_axle_width();
-    float turn_cannon(float degrees);
     float get_max_attr();
     float get_cannon_len();
-    void forward();
-    void back();
+    float turn_cannon(float degrees);
+    float turn_wheel(float degrees);
+    bool forward(float amount);
+    void auto_forward(float amount);
+    void auto_turn_cannon();
+    bool back(float amount);
+    void shoot();
+    bool update_shots(float inc, unordered_map<int, Car*> *car_enemies, Car* player);
 };
 
 #endif

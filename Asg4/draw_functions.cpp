@@ -38,3 +38,22 @@ void _draw_iso_triangle(GLfloat height, GLfloat width, GLfloat* color)
     glVertex3f(w/2., h, 0);
   glEnd();
 }
+
+void _draw_point(GLfloat* color)
+{
+  glPointSize(5);
+  glBegin(GL_POINTS);
+    glColor3fv(color);
+    glVertex3f(0, 0, 0);
+  glEnd();
+}
+
+void _draw_text(GLfloat x, GLfloat y, char* str, GLfloat* color, void* font)
+{
+  glColor3fv(color);
+  glRasterPos2f(x, y);
+  while( *str ){
+    glutBitmapCharacter(font, *str);
+    str++;
+  }
+}

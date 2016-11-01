@@ -47,6 +47,47 @@ rectangle Car::_read_rectangle(TiXmlElement* elem)
   return rect;
 }
 
+bool Car::update_shots(float inc, unordered_map<int, Car*> *car_enemies, Car* player)
+{
+  for (vector<projectile>::iterator p = shots.begin(); p != shots.end();)
+  {
+    p->origin.x += inc * sin(p->angle);
+    p->origin.y -= inc * cos(p->angle);
+    float px = p->origin.x * car_to_arena;
+    float py = p->origin.y * car_to_arena;
+    if(px > 1 || px < 0 || py > 1 || py < 0)
+      p = shots.erase(p);
+    else {
+      bool deleted = 0;
+      if(id == -1) { // Projectile from player
+        for(auto it = car_enemies->begin(); it != car_enemies->end();) {
+          Car* c = it->second;
+          int key = it->first;
+          float r = arena->get_enemy_position(key).r / car_to_arena;
+          float dist = sqrt(pow(c->x - p->origin.x, 2) + pow(c->y - p->origin.y, 2));
+          if(dist<r)
+          {
+            it = car_enemies->erase(it);
+            arena->delete_enemy(key);
+            p = shots.erase(p);
+            deleted = 1;
+            break;
+          }
+          else
+            it++;
+        }
+      } else { // Projectile from enemy
+        float r = arena->get_player_diameter() / (2 * car_to_arena);
+        float dist = sqrt(pow(player->x - p->origin.x, 2) + pow(player->y - p->origin.y, 2));
+        if(dist<r)
+          return 1;
+      }
+    if(deleted == 0)
+      p++;
+    }
+  }
+  return 0;
+}
 void Car::_draw_wheel(GLfloat height, GLfloat width, GLfloat* color)
 {
   _draw_rectangle(height, width, color);
@@ -164,19 +205,57 @@ int Car::_read_xml(const char* file, GLfloat* color)
   car_color = color;
 }
 
-Car::Car(string file, int id, GLfloat* color)
+Car::Car(string file, int id, GLfloat* color, Arena* arena)
 {
   if(color == NULL)
   {
     unordered_map<string, GLfloat*> colors = create_color_table(); //Color hash
-    color = colors["maroon"];
+    color = colors["green"];
   }
   _read_xml(file.c_str(), color);
   this->id = id;
+  this->arena = arena;
+  float car_to_arena = arena->get_player_diameter();
+  this->car_to_arena = car_to_arena;
+  if(id == -1) {
+    point player_position = arena->get_player_position(); // Get Initial position
+    y = player_position.y / car_to_arena;
+    x = player_position.x / car_to_arena; // Set player initial position
+  } else {
+    point enemy_position = arena->get_enemy_position(id); // Get Initial position
+    y = enemy_position.y / car_to_arena;
+    x = enemy_position.x / car_to_arena; // Set player initial position
+  }
+  point arena_center = arena->get_center();
+  cx = arena_center.x / car_to_arena; // Get arena center
+  cy = arena_center.y / car_to_arena;
+  theta = atan2(y-cy, x-cx);
+  wheel_mark = 0;
+}
+
+void Car::shoot()
+{
+  projectile shot;
+  shot.origin.x = x-this->get_cannon_len()*sin(theta);
+  shot.origin.y = y+this->get_cannon_len()*cos(theta);
+  shot.angle = theta + cannon_angle*M_PIl/180;
+  shots.push_back(shot);
 }
 
 void Car::draw_car()
 {
+  for (vector<projectile>::iterator p = shots.begin(); p != shots.end(); p++)
+  {
+    glPushMatrix();
+    glTranslatef(p->origin.x, p->origin.y, 0);
+    glRotatef(p->angle*180/M_PIl, 0, 0, 1);
+      _draw_point(car_color);
+    glPopMatrix();
+  }
+  glTranslatef(x, y, 0);
+  glRotatef(theta*180/M_PIl, 0, 0, 1);
+  char str[10];
+  sprintf(str, "%d", id);
   glPushMatrix();
   glTranslatef(-max_attr_x/(2*max_attr), -max_attr_y/(2*max_attr), 0);
     // Front Axis
@@ -250,14 +329,119 @@ float Car::turn_cannon(float degrees)
   return cannon_angle;
 }
 
-void Car::forward()
-{
-  wheel_mark = wheel_mark > 0 ? wheel_mark - 5 : 180;
+double map_ang(double x){
+  x = fmod(x + 180,360);
+  if (x < 0) x += 360;
+  return x - 180;
 }
 
-void Car::back()
+void Car::auto_turn_cannon()
+{
+  point p = arena->get_player_position();
+  float dy = y - p.y / car_to_arena;
+  float dx = x - p.x / car_to_arena;
+  cannon_angle = (atan2(dy, dx) - theta) * 180. / M_PIl - (rand() % 20 + 80);
+  cannon_angle = map_ang(cannon_angle);
+  if(cannon_angle > 45 || cannon_angle < -45)
+    cannon_angle = (rand() % 90 - 45);
+}
+
+bool Car::forward(float inc)
+{
+  wheel_mark = wheel_mark > 0 ? wheel_mark - 5 : 180;
+  float thetap = theta + inc / this->get_axle_track() * tan(-wheel_angle * M_PIl/180);
+  float xp = x + inc * sin(-thetap);
+  float yp = y + inc * cos(-thetap);
+  point p = {xp * car_to_arena, yp * car_to_arena};
+  if(arena->check_player_colision(p))
+  {
+    theta = thetap;
+    x = xp;
+    y = yp;
+    arena->set_player_position(p);
+  }
+  if(id == -1)
+  {
+    int cp = arena->check_player_checkpoint(p);
+    if(last_checkpoint != cp)
+    {
+      last_checkpoint = cp;
+      if(cp == expected_checkpoint)
+      {
+        score++;
+        expected_checkpoint = (expected_checkpoint + 1) % 3;
+      } else {
+        score--;
+      }
+    }
+    if(score == 5)
+      return 1;
+  }
+  return 0;
+}
+
+void Car::auto_forward(float inc)
+{
+  if(stuck_count == (rand() % 10 + 5)) {
+    sig_inc = -1;
+  } else if(stuck_count == (rand() % 5)) {
+    sig_inc = 1;
+  }
+  inc *= sig_inc;
+  wheel_mark = wheel_mark > 0 ? wheel_mark - 5 : 180;
+
+  // Calculate correct wheel angle
+  float rho = sqrt(pow(y-cy,2)+pow(x-cx,2));
+  wheel_angle = -atan((float)this->get_axle_track() / rho) * 180 / M_PIl;
+  float thetap = theta + inc / this->get_axle_track() * tan(-wheel_angle * M_PIl/180);
+  float xp = x + inc * sin(-thetap);
+  float yp = y + inc * cos(-thetap);
+  point p = {xp * car_to_arena, yp * car_to_arena};
+  if(arena->check_enemy_colision(id, p)) {
+    theta = thetap;
+    x = xp;
+    y = yp;
+    arena->set_enemy_position(id, p);
+    if(stuck_count > 0)
+      stuck_count--;
+  } else {
+    if(stuck_count < 10)
+      stuck_count++;
+  }
+}
+
+bool Car::back(float inc)
 {
   wheel_mark = wheel_mark < 180 ? wheel_mark + 5 : 0;
+  float thetap = theta + inc / this->get_axle_track() * tan(-wheel_angle * M_PIl/180);
+  float xp = x + inc * sin(-thetap);
+  float yp = y + inc * cos(-thetap);
+  point p = {xp * car_to_arena, yp * car_to_arena};
+  if(arena->check_player_colision(p)) {
+    theta = thetap;
+    x = xp;
+    y = yp;
+    arena->set_player_position(p);
+  }
+  if(id == -1)
+  {
+    int cp = arena->check_player_checkpoint(p);
+    if(last_checkpoint != cp)
+    {
+      last_checkpoint = cp;
+      if(cp == expected_checkpoint)
+      {
+        score++;
+        expected_checkpoint = (expected_checkpoint + 1) % 3;
+      } else {
+        score--;
+        expected_checkpoint = (expected_checkpoint - 1) % 3;
+      }
+    }
+    if(score == 5)
+      return 1;
+  }
+  return 0;
 }
 
 float Car::get_axle_track()

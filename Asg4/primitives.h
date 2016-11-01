@@ -3,7 +3,7 @@
 #include <GL/gl.h>
 
 struct point {
-  GLfloat x, y;
+  GLfloat x, y, r;
 };
 
 struct rectangle {
