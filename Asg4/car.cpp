@@ -77,7 +77,7 @@ bool Car::update_shots(float inc, unordered_map<int, Car*> *car_enemies, Car* pl
             it++;
         }
       } else { // Projectile from enemy
-        float r = arena->get_player_diameter() / (2 * car_to_arena);
+        float r = arena->get_player_radius() / (2 * car_to_arena);
         float dist = sqrt(pow(player->x - p->origin.x, 2) + pow(player->y - p->origin.y, 2));
         if(dist<r)
           return 1;
@@ -203,6 +203,7 @@ int Car::_read_xml(const char* file, GLfloat* color)
   axle_width = front_axle.w;
   axle_track = abs(front_axle.origin.y - rear_axle.origin.y);
   car_color = color;
+
 }
 
 Car::Car(string file, int id, GLfloat* color, Arena* arena)
@@ -215,7 +216,7 @@ Car::Car(string file, int id, GLfloat* color, Arena* arena)
   _read_xml(file.c_str(), color);
   this->id = id;
   this->arena = arena;
-  float car_to_arena = arena->get_player_diameter();
+  float car_to_arena = arena->get_player_radius();
   this->car_to_arena = car_to_arena;
   if(id == -1) {
     point player_position = arena->get_player_position(); // Get Initial position
@@ -252,11 +253,9 @@ void Car::draw_car()
       _draw_point(car_color);
     glPopMatrix();
   }
+  glPushMatrix();
   glTranslatef(x, y, 0);
   glRotatef(theta*180/M_PIl, 0, 0, 1);
-  char str[10];
-  sprintf(str, "%d", id);
-  glPushMatrix();
   glTranslatef(-max_attr_x/(2*max_attr), -max_attr_y/(2*max_attr), 0);
     // Front Axis
     glPushMatrix();
@@ -360,24 +359,23 @@ bool Car::forward(float inc)
     y = yp;
     arena->set_player_position(p);
   }
-  if(id == -1)
+  int cp = arena->check_player_checkpoint(p);
+  if(last_checkpoint != cp)
   {
-    int cp = arena->check_player_checkpoint(p);
-    if(last_checkpoint != cp)
+    last_checkpoint = cp;
+    if(cp == expected_checkpoint)
     {
-      last_checkpoint = cp;
-      if(cp == expected_checkpoint)
-      {
-        score++;
-        expected_checkpoint = (expected_checkpoint + 1) % 3;
-      } else {
-        score--;
-      }
+      score++;
+      expected_checkpoint = (expected_checkpoint + 1) % 3;
+    } else {
+      score--;
     }
-    if(score == 5)
-      return 1;
   }
-  return 0;
+
+  if(score == 5)
+    return 1;
+  else
+    return 0;
 }
 
 void Car::auto_forward(float inc)
@@ -423,25 +421,23 @@ bool Car::back(float inc)
     y = yp;
     arena->set_player_position(p);
   }
-  if(id == -1)
+  int cp = arena->check_player_checkpoint(p);
+  if(last_checkpoint != cp)
   {
-    int cp = arena->check_player_checkpoint(p);
-    if(last_checkpoint != cp)
+    last_checkpoint = cp;
+    if(cp == expected_checkpoint)
     {
-      last_checkpoint = cp;
-      if(cp == expected_checkpoint)
-      {
-        score++;
-        expected_checkpoint = (expected_checkpoint + 1) % 3;
-      } else {
-        score--;
-        expected_checkpoint = (expected_checkpoint - 1) % 3;
-      }
+      score++;
+      expected_checkpoint = (expected_checkpoint + 1) % 3;
+    } else {
+      score--;
+      expected_checkpoint = (expected_checkpoint - 1) % 3;
     }
-    if(score == 5)
-      return 1;
   }
-  return 0;
+  if(score == 5)
+    return 1;
+  else
+    return 0;
 }
 
 float Car::get_axle_track()

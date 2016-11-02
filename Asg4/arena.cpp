@@ -100,6 +100,22 @@ void Arena::draw_arena()
     glTranslatef(normalize_x(start.origin.x), normalize_y(start.origin.y), 0);
       _draw_rectangle(start.h/max_attr, start.w/max_attr, start.color);
     glPopMatrix();
+
+    // //Player
+    // glPushMatrix();
+    // glTranslatef(normalize_x(player.center.x), normalize_y(player.center.y), 0);
+    //   _draw_circle(player.r/max_attr, player.color);
+    // glPopMatrix();
+    //
+    // //Enemies
+    // for(auto ek : enemies)
+    // {
+    //   circle e = ek.second;
+    //   glPushMatrix();
+    //   glTranslatef(normalize_x(e.center.x), normalize_y(e.center.y), 0);
+    //     _draw_circle(e.r/max_attr, e.color);
+    //   glPopMatrix();
+    // }
   glPopMatrix();
 }
 
@@ -108,9 +124,9 @@ float Arena::get_max_attr()
   return max_attr;
 }
 
-float Arena::get_player_diameter()
+float Arena::get_player_radius()
 {
-  return (2.*player.r)/max_attr;
+  return (2*player.r)/max_attr;
 }
 
 point Arena::get_player_position()

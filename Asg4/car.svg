@@ -1,81 +1,81 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1">
   <rect
-    y="52.847126"
-    x="34.937988"
-    height="6.6071429"
-    width="100"
-    id="F_AXIS"
-    fill="maroon" />
+     y="51.719852"
+     x="31.355221"
+     height="6.6071429"
+     width="100"
+     id="F_AXIS"
+     fill="black"/>
   <rect
-    y="158.93642"
-    x="31.598576"
-    height="13.6071429"
-    width="108.13831"
-    id="R_AXIS"
-    fill="maroon" />
+     y="157.80914"
+     x="28.015808"
+     height="13.607142"
+     width="108.13831"
+     id="R_AXIS"
+     fill="black"/>
   <rect
-    y="21.256563"
-    x="21.045313"
-    height="74.285713"
-    width="22.774202"
-    id="LF_WHEEL"
-    fill="black" />
+     y="20.129292"
+     x="17.462545"
+     height="74.285713"
+     width="22.774202"
+     id="LF_WHEEL"
+     fill="black" />
   <rect
-    y="21.195282"
-    x="128.04218"
-    height="74.285713"
-    width="22.774202"
-    id="RF_WHEEL"
-    fill="black" />
+     y="20.068008"
+     x="124.4594"
+     height="74.285713"
+     width="22.774202"
+     id="RF_WHEEL"
+     fill="black" />
   <rect
-    y="127.16853"
-    x="3.5827682"
-    height="74.285713"
-    width="29.213924"
-    id="RR_WHEEL"
-    fill="black" />
+     y="126.04126"
+     x="0"
+     height="74.285713"
+     width="29.213924"
+     id="RR_WHEEL"
+     fill="black" />
   <rect
-    y="127.16853"
-    x="138.678"
-    height="74.285713"
-    width="29.213924"
-    id="LR_WHEEL"
-    fill="black" />
+     y="126.04126"
+     x="135.09523"
+     height="74.285713"
+     width="29.213924"
+     id="LR_WHEEL"
+     fill="black" />
   <circle
-    r="7.5"
-    cy="8.6272726"
-    cx="85.405281"
-    id="CANNON_TIP"
-    fill="gray" />
+     r="7.5"
+     cy="7.5"
+     cx="81.82251"
+     id="CANNON_TIP"
+     fill="gray" />
   <rect
-    y="8.5830832"
-    x="77.941017"
-    height="23"
-    width="15"
-    id="CANNON"
-    fill="gray" />
+     y="7.4558105"
+     x="74.358246"
+     height="23"
+     width="15"
+     id="CANNON"
+     fill="gray" />
   <polygon
-    points="136.01416,149.07403 35.290376,149.07403 85.652268,30.07403"
-    id="COCKPIT"
-    fill="maroon"/>
+     points="132.4313918,147.9467574 31.7076078,147.9467574 82.0694998,28.9467574"
+     id="COCKPIT"
+     fill="maroon"/>
   <rect
-     y="25.311415"
-     x="66.941017"
+     y="24.184143"
+     x="63.35825"
      height="182.14285"
      width="37"
      id="CHASSIS"
      fill="black" />
   <rect
-     y="206.45424"
-     x="30.695606"
+     y="205.32697"
+     x="27.112839"
      height="40"
      width="110"
      id="SPOILER"
      fill="black" />
   <circle
      r="12"
-     cy="126.31142"
-     cx="85.441017"
+     cy="125.18414"
+     cx="81.858246"
      id="DRIVER"
-     fill="maroon" />
+     fill="maroon"/>
 </svg>

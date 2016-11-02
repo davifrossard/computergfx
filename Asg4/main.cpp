@@ -15,7 +15,8 @@ bool alive = 1, win = 0;
 char current_time[10];
 int key_status[256];
 float velTiro, velCarro;
-float car_to_arena, arena_to_car;
+float eVelTiro, eFreqTiro, eVelCarro;
+float car_to_arena;
 
 float sign(float x)
 {
@@ -43,9 +44,6 @@ void display() {
   glPushMatrix();
   glTranslatef(0.5, 0.5, 0);
     arena->draw_arena();
-    _draw_text(0., 0., current_time, colors["black"]);
-    if(!alive) _draw_text(0., -0.02, "MORREU", colors["red"], GLUT_BITMAP_HELVETICA_18);
-    if(win) _draw_text(0., -0.02, "GANHOU", colors["green"], GLUT_BITMAP_HELVETICA_18);
   glPopMatrix();
 
   glPushMatrix();
@@ -60,7 +58,10 @@ void display() {
       player->draw_car();
     glPopMatrix();
   glPopMatrix();
+  _draw_text(.9, 0.015, current_time, colors["black"]);
 
+  if(!alive) _draw_text(.9, 0.03, "MORREU", colors["red"], GLUT_BITMAP_HELVETICA_18);
+  if(win) _draw_text(.9, 0.03, "GANHOU", colors["green"], GLUT_BITMAP_HELVETICA_18);
   glutSwapBuffers();
 }
 
@@ -86,63 +87,61 @@ void reshape(int w, int h)
 }
 
 void idle(void) {
+  static float cont = 0;
+  static float last_time = glutGet(GLUT_ELAPSED_TIME);
+  float elapsed_time = glutGet(GLUT_ELAPSED_TIME) - last_time;
+  bool res_count = 0;
+  cont += elapsed_time;
+
   if(alive && !win) {
-    static float last_time = glutGet(GLUT_ELAPSED_TIME);
     tuple<float, float> result;
-    float inc = 0;
-    float elapsed_time = glutGet(GLUT_ELAPSED_TIME) - last_time;
     if(key_status['a'] == 1 || key_status['A'] == 1) {
       player->turn_wheel(-1);
     } if(key_status['d'] == 1 || key_status['D'] == 1) {
       player->turn_wheel(1);
   	} if(key_status['w'] == 1 || key_status['W'] == 1) {
-      inc -= velCarro * elapsed_time;
-      win = player->forward(inc);
+      win = player->forward(-velCarro * elapsed_time);
   	} if(key_status['s'] == 1 || key_status['S'] == 1) {
-      inc += velCarro * elapsed_time;
-      win = player->back(inc);
+      win = player->back(velCarro * elapsed_time);
   	}
     if(win)
       glutPostRedisplay();
     player->update_shots(velTiro * elapsed_time, &enemies, player);
     for(auto ck : enemies) {
       Car* c = ck.second;
-      c->auto_forward(-velCarro * elapsed_time);
+      c->auto_forward(-eVelCarro * elapsed_time);
       c->auto_turn_cannon();
-      if((rand() % 100) >= 91)
+      if(cont >= (1./eFreqTiro)) {
         c->shoot();
-      if(c->update_shots(velTiro * elapsed_time, &enemies, player))
-      {
+        res_count = 1;
+      } if(c->update_shots(eVelTiro * elapsed_time, &enemies, player)) {
         alive = 0;
         glutPostRedisplay();
       }
-
     }
-
-    last_time = glutGet(GLUT_ELAPSED_TIME);
+    if(res_count) cont = 0;
     int seconds = last_time / 1000;
     int minutes = seconds / 60;
     sprintf(current_time, "%02d:%02d:%02d", minutes, seconds%60, (int)last_time%1000);
     glutPostRedisplay();
+    last_time = glutGet(GLUT_ELAPSED_TIME);
   }
 }
 
 
-tuple<string,float,float> parseXML(string path)
+string parseXML(string path)
 {
-  const char * const configs[7] = {"arquivoDaArena", "nome", "tipo", "caminho", "carro", "velTiro", "velCarro"};
+  const char * const configs[9] = {"arquivoDaArena", "nome", "tipo", "caminho", "carro", "velTiro", "velCarro", "carroInimigo", "freqTiro"};
   TiXmlDocument config;
   path += "config.xml";
   config.LoadFile(path.c_str());
   TiXmlElement* root = config.FirstChildElement();
-  if(!root)
-  {
+  if(!root) {
     printf("Invalid configuration file.\n");
     exit(0);
   }
   // Read configuration file
   string img;
-  float velTiro, velCarro;
   for(TiXmlElement* elem = root->FirstChildElement(); elem != NULL; elem = elem->NextSiblingElement()) {
     string elemName = elem->Value();
     if(elemName == configs[0]) {
@@ -155,9 +154,13 @@ tuple<string,float,float> parseXML(string path)
     } else if(elemName == configs[4]) {
       velTiro = atof(elem->Attribute(configs[5]));
       velCarro = atof(elem->Attribute(configs[6]));
+    } else if(elemName == configs[7]) {
+      eFreqTiro = atof(elem->Attribute(configs[8]));
+      eVelTiro = atof(elem->Attribute(configs[5]));
+      eVelCarro = atof(elem->Attribute(configs[6]));
     }
   }
-  return make_tuple(img,velTiro,velCarro);
+  return img;
 }
 
 
@@ -169,28 +172,27 @@ int main(int argc, char** argv) {
       return 0;
   }
   string buffer = argv[1];
-  tuple<string,float,float> configs = parseXML(buffer); // Read config.xml
+  string arena_file = parseXML(buffer); // Read config.xml
 
   // Read Arena
-  string afile = get<0>(configs); // Get arena file
-  arena = new Arena(afile); // Read arena file
+  arena = new Arena(arena_file); // Read arena file
 
   // Create player vehicle
   string car_file = "car.svg";
   player = new Car(car_file, -1, NULL, arena);
 
   // Create enemy vehicles
-  for(auto ek : arena->get_enemies())
-  {
+  for(auto ek : arena->get_enemies()) {
     Car* enemy = new Car(car_file, ek.first, ek.second.color, arena);
     enemies[ek.first] = enemy;
   }
 
   // Transformation constants
-  car_to_arena = arena->get_player_diameter(); // Transfer from car to arena
-  arena_to_car = 1/car_to_arena; // Transfer from arena to car
-  velTiro = get<1>(configs) * car_to_arena; // Shot speed
-  velCarro = get<2>(configs) * car_to_arena; // Car speed
+  car_to_arena = arena->get_player_radius(); // Transfer from car to arena
+  velTiro = velTiro * car_to_arena / 4; // Shot speed
+  eVelTiro = eVelTiro * car_to_arena / 4; // Enemy shot speed
+  velCarro = velCarro * car_to_arena / 4; // Car speed
+  eVelCarro = eVelCarro * car_to_arena / 4; // Car speed
 
   // Color table
   colors = create_color_table(); //Color hash

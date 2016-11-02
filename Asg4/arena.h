@@ -36,7 +36,7 @@ class Arena
     Arena(string path);
     void draw_arena();
     float get_max_attr();
-    float get_player_diameter();
+    float get_player_radius();
     point get_player_position();
     point get_center();
     point get_enemy_position(int id);
