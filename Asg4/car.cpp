@@ -232,6 +232,7 @@ Car::Car(string file, int id, GLfloat* color, Arena* arena)
   cy = arena_center.y / car_to_arena;
   theta = atan2(y-cy, x-cx);
   wheel_mark = 0;
+  cannon_angle = 0;
 }
 
 void Car::shoot()
@@ -369,6 +370,7 @@ bool Car::forward(float inc)
       expected_checkpoint = (expected_checkpoint + 1) % 3;
     } else {
       score--;
+      expected_checkpoint = (expected_checkpoint - 1) % 3;
     }
   }
 
