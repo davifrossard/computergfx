@@ -14,6 +14,30 @@ MeshObject steering_wheel;
 MeshObject wheel;
 float angle;
 
+// Set lighting intensity and color
+GLfloat qaAmbientLight[]    = {50, 50, 50, 1};
+// Light source position
+GLfloat qaLightPosition[]    = {0, 0, 10, 0};
+GLfloat dirVector0[]={ 0, 0, -1, 0.0};
+
+void initLighting()
+{
+    // Enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+     // Set lighting intensity and color
+    glLightfv(GL_LIGHT0, GL_AMBIENT, qaAmbientLight);
+    glLightfv(GL_LIGHT0, GL_POSITION, qaLightPosition);
+    ////////////////////////////////////////////////
+
+     glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 60.0);// set cutoff angle
+     glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dirVector0);
+     glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 10); // set focusing strength
+
+
+}
+
 void display() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glMatrixMode(GL_PROJECTION);
@@ -29,10 +53,12 @@ void display() {
     0.0, 0.0, 1.0);      /* up is in positive Y direction */
 
 
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-   glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-       glEnable(GL_TEXTURE_2D);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  static GLfloat amb[] = {0., 0., 10., 10};
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, amb);
+  glEnable(GL_TEXTURE_2D);
   glPushMatrix();
   glRotatef(-angle, 0, 0, 1);
     chassis.draw();
@@ -80,6 +106,8 @@ void display() {
 
   glPopMatrix();
   glDisable(GL_TEXTURE_2D);
+  glLightfv(GL_LIGHT0, GL_POSITION, qaLightPosition);
+
      glPopAttrib();
 
      glFlush();
@@ -100,7 +128,7 @@ bool load_texture(const char * path, GLuint textureID)
       return -1;
   }
   glBindTexture(GL_TEXTURE_2D, textureID);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_DECAL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_DECAL);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
@@ -109,6 +137,24 @@ bool load_texture(const char * path, GLuint textureID)
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, texture.width, texture.height, GL_RGB, GL_UNSIGNED_BYTE, texture.rgb_data);
   bmpread_free(&texture);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void keyboard(unsigned char key, int x, int y)
+{
+
+
+     if (key == 'l' || key == 'L')
+    {
+          glEnable(GL_LIGHTING);
+          printf("enabled\n");
+    }
+    else if (key == 'd' || key == 'D')
+    {
+        glDisable(GL_LIGHTING);
+        printf("disabled\n");
+    }
+
 }
 
 int main(int argc, char** argv)
@@ -120,6 +166,7 @@ int main(int argc, char** argv)
   glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH)-1000)/2,
                          (glutGet(GLUT_SCREEN_HEIGHT)-1000)/2);
   glutCreateWindow("Assignment 3");
+  initLighting();
 
   GLuint texture[2];
   glGenTextures(2, texture);
@@ -135,9 +182,9 @@ int main(int argc, char** argv)
   steering_wheel.bind_texture(texture[1]);
   wheel.load_obj("../Obj_Parts/wheel.obj");
   wheel.bind_texture(texture[1]);
-
-
   glEnable(GL_DEPTH_TEST);
+
   glutDisplayFunc(display);
+  glutKeyboardFunc(keyboard);
   glutMainLoop();
 }
