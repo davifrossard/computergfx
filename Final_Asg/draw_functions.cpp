@@ -4,7 +4,21 @@ void _draw_circle(GLfloat radius, GLfloat* color)
 {
   GLfloat r = radius;
   glColor3fv(color);
-  glBegin( GL_TRIANGLE_FAN );
+  glBegin(GL_TRIANGLE_FAN);
+    glVertex3f(0, 0, 0);
+    for(int i = 0; i <= NUM_CIRC_POLYGONS; i++)
+    {
+      double theta =  i * 2 * M_PIl / NUM_CIRC_POLYGONS;
+      glVertex3f(r * cosf(theta), r * sinf(theta), 0);
+    }
+  glEnd();
+}
+
+void _draw_circle_cont(GLfloat radius, GLfloat* color)
+{
+  GLfloat r = radius;
+  glColor3fv(color);
+  glBegin(GL_LINE_LOOP);
     glVertex3f(0, 0, 0);
     for(int i = 0; i <= NUM_CIRC_POLYGONS; i++)
     {

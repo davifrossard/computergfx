@@ -10,6 +10,7 @@
 using namespace std;
 
 void _draw_circle(GLfloat radius, GLfloat* color);
+void _draw_circle_cont(GLfloat radius, GLfloat* color);
 void _draw_rectangle(GLfloat height, GLfloat width, GLfloat* color);
 void _draw_iso_triangle(GLfloat height, GLfloat width, GLfloat* color);
 void _draw_point(GLfloat* color);

@@ -101,6 +101,18 @@ void first_person_cam()
   draw();
 }
 
+void minimap() {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-40, 40, -40, 40, -5, 5);
+    glMatrixMode(GL_MODELVIEW);
+    glViewport(0, 0, 250, 250);
+    glLoadIdentity();
+    glPushAttrib(GL_CURRENT_BIT);
+    arena->draw_arena_2d();
+    glPopAttrib();
+}
+
 void display() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -119,15 +131,7 @@ void display() {
     first_person_cam();
   }
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(-40, 40, -40, 40, -5, 5);
-    glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, 100, 100);
-    glLoadIdentity();
-    glPushAttrib(GL_CURRENT_BIT);
-    arena->draw_arena();
-    glPopAttrib();
+  minimap();
 
   glFlush();
   glutSwapBuffers();

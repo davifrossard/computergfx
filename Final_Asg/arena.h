@@ -37,6 +37,7 @@ class Arena
   public:
     Arena(string path);
     void draw_arena();
+    void draw_arena_2d();
     float get_max_attr();
     float get_player_radius();
     circ_state get_player_position();

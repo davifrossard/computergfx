@@ -93,6 +93,46 @@ Arena::Arena(string path)
   _read_xml(path.c_str());
 }
 
+void Arena::draw_arena_2d()
+{
+  glPushMatrix();
+  glTranslatef(-outer_circle.center.x/max_attr, -outer_circle.center.y/max_attr, -1);
+    //Outer Ring
+    glPushMatrix();
+    glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 0);
+      _draw_circle_cont(outer_circle.r/max_attr, outer_circle.color);
+    glPopMatrix();
+
+    //Inner Ring
+    glPushMatrix();
+    glTranslatef(inner_circle.center.x/max_attr, inner_circle.center.y/max_attr, 0.1);
+      _draw_circle_cont(inner_circle.r/max_attr, inner_circle.color);
+    glPopMatrix();
+
+    //Starting Point
+    glPushMatrix();
+    glTranslatef(start.origin.x/max_attr, start.origin.y/max_attr, .1);
+      _draw_rectangle(start.h/max_attr, start.w/max_attr, start.color);
+    glPopMatrix();
+
+    //Player
+    glPushMatrix();
+    glTranslatef(player.center.x/max_attr, player.center.y/max_attr, .2);
+      _draw_circle(player.r/max_attr, player.color);
+    glPopMatrix();
+
+    //Enemies
+    for(auto ek : enemies)
+    {
+      circle e = ek.second;
+      glPushMatrix();
+      glTranslatef(e.center.x/max_attr, e.center.y/max_attr, 0.2);
+        _draw_circle(e.r/max_attr, e.color);
+      glPopMatrix();
+    }
+  glPopMatrix();
+}
+
 void Arena::draw_arena()
 {
   glPushMatrix();
