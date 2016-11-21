@@ -18,6 +18,7 @@ int key_status[256];
 float velTiro, velCarro;
 float eVelTiro, eFreqTiro, eVelCarro;
 
+
 void keyup(unsigned char key, int x, int y)
 {
     key_status[key] = 0;
@@ -48,21 +49,61 @@ void draw()
   glDisable(GL_TEXTURE_2D);
 }
 
-void display() {
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+void third_person_cam()
+{
+  sp_state ps = player->get_car_state();
+  gluLookAt(ps.position.x-5*sin(ps.angle),
+            ps.position.y+5*cos(ps.angle),
+            ps.position.z+2.87649,  /* eye position */
+            ps.position.x+60*sin(ps.angle),
+            ps.position.y-60*cos(ps.angle),
+            ps.position.z+0.77649,      /* lookat */
+            0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
+  draw();
+}
+
+void first_person_cam()
+{
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(60.0, /* FOV */
-    1, /* aspect ratio */
-    0.1, 200.0); /* Z near and far */
-    glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, 100, 100);
-    glLoadIdentity();
-    gluLookAt(0, 0, 100,  /* eye is at (.5,.5,-2) */
-    0.0, 0.0, 0.0,      /* center is at (.5,.5,0) */
-    0.0, 1.0, 0.0);      /* up is in positive Y direction */
-    draw();
+                 0.8, /* aspect ratio */
+                 0.1, 200.0); /* Z near and far */
+  glMatrixMode(GL_MODELVIEW);
+  glViewport(0, 0, 1000, 800);
+  glLoadIdentity();
+  sp_state ps = player->get_car_state();
+  gluLookAt(ps.position.x+0.5*cos(ps.angle)-0.3*sin(ps.angle),
+            ps.position.y+0.35*cos(ps.angle)+0.5*sin(ps.angle),
+            ps.position.z+0.85,  /* eye position */
+            ps.position.x+60*sin(ps.angle),
+            ps.position.y-60*cos(ps.angle),
+            ps.position.z+0.45,      /* lookat */
+            0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
+  draw();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(60.0, /* FOV */
+                 0.8, /* aspect ratio */
+                 0.1, 200.0); /* Z near and far */
+  glMatrixMode(GL_MODELVIEW);
+  glViewport(0, 750, 1000, 1000);
+  glLoadIdentity();
+  gluLookAt(ps.position.x+2.5*sin(ps.angle),
+            ps.position.y-2.5*cos(ps.angle),
+            ps.position.z+3,  /* eye position */
+            ps.position.x-60*sin(ps.angle),
+            ps.position.y+60*cos(ps.angle),
+            ps.position.z+15,      /* lookat */
+            0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
+  draw();
+}
+
+void display() {
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -73,26 +114,20 @@ void display() {
   glViewport(0, 0, 1000, 1000);
   glLoadIdentity();
   if(current_cam == 0) { /* third person cam */
-  sp_state ps = player->get_car_state();
-  gluLookAt(ps.position.x-5*sin(ps.angle),
-            ps.position.y+5*cos(ps.angle),
-            ps.position.z+2.87649,  /* eye position */
-            ps.position.x+60*sin(ps.angle),
-            ps.position.y-60*cos(ps.angle),
-            ps.position.z+0.77649,      /* lookat */
-            0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
+    third_person_cam();
   } else if(current_cam == 1) { /* first person cam */
-    sp_state ps = player->get_car_state();
-    gluLookAt(ps.position.x+0.5*cos(ps.angle)-0.3*sin(ps.angle),
-              ps.position.y+0.35*cos(ps.angle)+0.5*sin(ps.angle),
-              ps.position.z+0.85,  /* eye position */
-              ps.position.x+60*sin(ps.angle),
-              ps.position.y-60*cos(ps.angle),
-              ps.position.z+0.45,      /* lookat */
-              0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
+    first_person_cam();
   }
-  draw();
 
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-40, 40, -40, 40, -5, 5);
+    glMatrixMode(GL_MODELVIEW);
+    glViewport(0, 0, 100, 100);
+    glLoadIdentity();
+    glPushAttrib(GL_CURRENT_BIT);
+    arena->draw_arena();
+    glPopAttrib();
 
   glFlush();
   glutSwapBuffers();
