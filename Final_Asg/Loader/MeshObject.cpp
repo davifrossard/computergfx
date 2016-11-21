@@ -78,6 +78,7 @@ void MeshObject::draw()
 		glNormal3f(n.x, n.y, n.z);
 	}
 	glEnd();
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void MeshObject::bind_texture(GLuint texture)
