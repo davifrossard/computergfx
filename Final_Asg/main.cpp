@@ -17,6 +17,7 @@ char current_time[10];
 int key_status[256];
 float velTiro, velCarro;
 float eVelTiro, eFreqTiro, eVelCarro;
+float camXY, camXZ, rbdown, c_angle, c_tip;
 
 
 void keyup(unsigned char key, int x, int y)
@@ -53,13 +54,27 @@ void draw()
 void third_person_cam()
 {
   sp_state ps = player->get_car_state();
-  gluLookAt(ps.position.x-5*sin(ps.angle),
-            ps.position.y+5*cos(ps.angle),
-            ps.position.z+2.87649,  /* eye position */
-            ps.position.x+60*sin(ps.angle),
-            ps.position.y-60*cos(ps.angle),
-            ps.position.z+0.77649,      /* lookat */
+  float ca = c_angle * M_PI / 180.;
+  gluLookAt(ps.position.x-1.95*sin(ps.angle),
+            ps.position.y+1.95*cos(ps.angle),
+            ps.position.z+1.95,  /* eye position */
+            ps.position.x+60*sin(ps.angle-ca),
+            ps.position.y-60*cos(ps.angle-ca),
+            ps.position.z+0.45,      /* lookat */
             0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
+  draw();
+}
+
+void mouse_cam()
+{
+  sp_state ps = player->get_car_state();
+  gluLookAt(ps.position.x + 8*sin(camXY*M_PI/180)*cos(camXZ*M_PI/180),
+            ps.position.y - 8*cos(camXY*M_PI/180)*cos(camXZ*M_PI/180),
+            ps.position.z + 8*sin(camXZ*M_PI/180),  /* eye position */
+            ps.position.x,
+            ps.position.y,
+            ps.position.z,      /* lookat */
+            0.0, 0.0, 1.0);     /* up is (0, 0, 1) */
   draw();
 }
 
@@ -83,6 +98,7 @@ void first_person_cam()
             0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
   draw();
 
+  /* Rear view Mirror */
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(60.0, /* FOV */
@@ -129,6 +145,8 @@ void display() {
     third_person_cam();
   } else if(current_cam == 1) { /* first person cam */
     first_person_cam();
+  } else if(current_cam == 2) {
+    mouse_cam(); /* mouse controlled camera */
   }
 
   minimap();
@@ -136,18 +154,43 @@ void display() {
   glFlush();
   glutSwapBuffers();
 }
+
 void control_cannon(int x, int y)
 {
-  player->turn_cannon(x * (45 - (-45)) / (1000) + (-45));
-  player->tip_cannon(((500-y) * 45 / 1000)*3);
+  c_angle = player->turn_cannon(x * (45 - (-45)) / (1000) + (-45));
+  c_tip = player->tip_cannon(((500-y) * 45 / 1000)*3);
+}
+
+void control_camera(int x, int y)
+{
+  static int lastx, lasty;
+  if(rbdown) {
+    if(x > lastx) {
+      camXY = (camXY < 180) ? camXY + 1 : camXY;
+    } else if (x < lastx) {
+      camXY = (camXY > -180) ? camXY - 1 : camXY;
+    }
+    if(y > lasty) {
+      camXZ = (camXZ < 180) ? camXZ + 1 : camXZ;
+    } else if (y < lasty) {
+      camXZ = (camXZ > 0) ? camXZ - 1 : camXZ;
+    }
+    lastx = x;
+    lasty = y;
+  }
 }
 
 void shoot_cannon(int button, int state, int mx, int my)
 {
-    if(button == 0 && state == 0)
-    {
-      player->shoot();
+  if(button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+  player->shoot();
+  } else if(button == GLUT_RIGHT_BUTTON) {
+    if(state == GLUT_DOWN) {
+      rbdown = 1;
+    } else {
+      rbdown = 0;
     }
+  }
 }
 
 void reshape(int w, int h)
@@ -202,21 +245,7 @@ void idle(void) {
     int minutes = seconds / 60;
     sprintf(current_time, "%02d:%02d:%02d", minutes, seconds%60, (int)last_time%1000);
     last_time = glutGet(GLUT_ELAPSED_TIME);
-    glViewport(0, 500, 1000, 1000);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0, 0, 10,  /* eye is at (.5,.5,-2) */
-      0.0, 0.0, 0.0,      /* center is at (.5,.5,0) */
-      0.0, -1.0, 0.0);      /* up is in positive Y direction */
-    display();
-
-    glViewport(0, 0, 1000, 500);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0, 10, 0,  /* eye is at (.5,.5,-2) */
-      0.0, 0.0, 0.0,      /* center is at (.5,.5,0) */
-      0.0, 0.0, 1.0);      /* up is in positive Y direction */
-    display();
+    glutPostRedisplay();
   }
 }
 
@@ -300,6 +329,7 @@ int main(int argc, char** argv) {
   glEnable(GL_DEPTH_TEST);
   glutDisplayFunc(display);
   glutPassiveMotionFunc(control_cannon);
+  glutMotionFunc(control_camera);
   glutKeyboardUpFunc(keyup);
   glutKeyboardFunc(keydown);
   glutMouseFunc(shoot_cannon);

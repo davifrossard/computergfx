@@ -274,8 +274,7 @@ bool Car::back(float inc)
     arena->set_player_position(p);
   }
   int cp = arena->check_player_checkpoint();
-  if(last_checkpoint != cp)
-  {
+  if(last_checkpoint != cp) {
     last_checkpoint = cp;
     if(cp == expected_checkpoint)
     {
