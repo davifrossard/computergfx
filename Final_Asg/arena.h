@@ -25,17 +25,17 @@ class Arena
     unordered_map<int, circle> enemies;
     rectangle start;
     circle player;
+    GLuint texture_floor, texture_wall, texture_inner_wall, texture_ceiling;
     float max_attr = 0;
     float outer_radius = 0;
     float minx = 0, miny = 0, maxx = 0, maxy = 0;
-
     circle _read_circle(TiXmlElement* elem);
     circle _read_circle_unnorm(TiXmlElement* elem);
     rectangle _read_rectangle(TiXmlElement* elem);
     int _read_xml(string path);
 
   public:
-    Arena(string path);
+    Arena(string path, GLuint* textures);
     void draw_arena();
     void draw_arena_2d();
     float get_max_attr();

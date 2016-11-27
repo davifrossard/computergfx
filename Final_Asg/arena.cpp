@@ -88,9 +88,13 @@ int Arena::_read_xml(string img)
   return 1;
 }
 
-Arena::Arena(string path)
+Arena::Arena(string path, GLuint* textures)
 {
   _read_xml(path.c_str());
+  texture_ceiling = textures[0];
+  texture_floor = textures[1];
+  texture_inner_wall = textures[2];
+  texture_wall = textures[3];
 }
 
 void Arena::draw_arena_2d()
@@ -135,27 +139,23 @@ void Arena::draw_arena_2d()
 
 void Arena::draw_arena()
 {
+  GLfloat dif_amb[3] = {255., 255., 255.};
+  glPushAttrib(GL_LIGHTING_BIT);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dif_amb);
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, dif_amb);
   GLUquadric* quad = gluNewQuadric();
-
-  GLuint texture_floor, texture_wall, texture_inner_wall, texture_ceiling;
-  texture_floor = LoadTexture("Textures/floor_texture.bmp", 256, 256);
-  texture_wall = LoadTexture("Textures/wall_texture.bmp", 256, 256);
-  texture_inner_wall = LoadTexture("Textures/inner_wall_texture.bmp", 256, 256);
-  texture_ceiling = LoadTexture("Textures/ceiling_texture.bmp", 256, 256);
-
   glPushMatrix();
   glTranslatef(-outer_circle.center.x/max_attr, -outer_circle.center.y/max_attr, -1);
     //Outer Ring
     glPushMatrix();
     glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 0);
-      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_floor);    
+      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_floor);
       _draw_cylinder(8, outer_circle.r/max_attr, texture_wall);
     glPopMatrix();
 
     //Inner Ring
     glPushMatrix();
     glTranslatef(inner_circle.center.x/max_attr, inner_circle.center.y/max_attr, 0.1);
-      //gluCylinder(quad, inner_circle.r/max_attr, inner_circle.r/max_attr, 8, 100, 100);
       _draw_cylinder(8, inner_circle.r/max_attr, texture_inner_wall);
     glPopMatrix();
 
@@ -171,22 +171,8 @@ void Arena::draw_arena()
       _draw_rectangle(start.h/max_attr, start.w/max_attr, start.color);
     glPopMatrix();
 
-    //Player
-    glPushMatrix();
-    glTranslatef(player.center.x/max_attr, player.center.y/max_attr, .2);
-      _draw_circle(player.r/max_attr, player.color);
-    glPopMatrix();
-
-    //Enemies
-    for(auto ek : enemies)
-    {
-      circle e = ek.second;
-      glPushMatrix();
-      glTranslatef(e.center.x/max_attr, e.center.y/max_attr, 0.2);
-        _draw_circle(e.r/max_attr, e.color);
-      glPopMatrix();
-    }
   glPopMatrix();
+  glPopAttrib();
 }
 
 float Arena::get_max_attr()
