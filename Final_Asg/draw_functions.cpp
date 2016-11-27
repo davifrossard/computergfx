@@ -1,45 +1,5 @@
 #include "draw_functions.h"
 
-GLuint LoadTexture( const char * filename, int width, int height)
-{
-
-  GLuint texture;
-
-  unsigned char * data;
-
-  FILE * file;
-
-  file = fopen( filename, "rb" );
-
-  if ( file == NULL ) return 0;
-
-  data = (unsigned char *)malloc( width * height * 3 );
-  //int size = fseek(file,);
-  fread( data, width * height * 3, 1, file );
-  fclose( file );
-
- for(int i = 0; i < width * height ; ++i)
-  {
-     int index = i*3;
-     unsigned char B,R;
-     B = data[index];
-     R = data[index+2];
-
-     data[index] = R;
-     data[index+2] = B;
-
-  }
-  glGenTextures( 1, &texture );
-  glBindTexture( GL_TEXTURE_2D, texture );
-  glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_COMBINE );
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR );
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
-  gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,GL_RGB, GL_UNSIGNED_BYTE, data );
-  free( data );
-
-  return texture;
-}
-
 void _draw_cylinder(double height, double radius, GLuint texture)
 {
     const double PI = 3.14159;
@@ -47,7 +7,7 @@ void _draw_cylinder(double height, double radius, GLuint texture)
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    double i, resolution  = 0.1;
+    double i, resolution  = 0.01;
 
     glPushMatrix();
     glRotatef(90,1,0,0);
@@ -63,7 +23,6 @@ void _draw_cylinder(double height, double radius, GLuint texture)
             glTexCoord2f( tc, 2.5 );
             glVertex3f(radius * cos(i), height, radius * sin(i));
         }
-        /* close the loop back to zero degrees */
         glTexCoord2f( 0.0, 0.0 );
         glVertex3f(radius, 0, 0);
         glTexCoord2f( 0.0, 1.0 );
@@ -108,9 +67,7 @@ void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture)
 
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, texture);
-
   glBegin(GL_POLYGON);
-
   for (angle=0.0; angle<360.0; angle+=2.0)
   {
       radian = angle * (M_PIl/180.0f);
@@ -123,9 +80,9 @@ void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture)
       ty = ysin*5;
 
       glTexCoord2f(tx, ty);
-      glVertex2f(x, y);
+      glVertex3f(x, y, 0.);
+      glNormal3f(0., 0., 1.);
   }
-
   glEnd();
   glDisable(GL_TEXTURE_2D);
 }
@@ -160,7 +117,7 @@ void _draw_point(GLfloat* color)
   glPushAttrib(GL_CURRENT_BIT);
   glBegin(GL_POINTS);
     glColor3fv(color);
-    glutSolidSphere(0.5, 20, 20);
+    glutSolidSphere(0.1, 20, 20);
   glEnd();
   glPopAttrib();
 }
@@ -191,7 +148,7 @@ bool _load_texture(const char * path, GLuint textureID)
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.rgb_data);
+  gluBuild2DMipmaps(GL_TEXTURE_2D, GL_COMPRESSED_RGB, texture.width, texture.height, GL_RGB, GL_UNSIGNED_BYTE, texture.rgb_data);
   bmpread_free(&texture);
   glBindTexture(GL_TEXTURE_2D, 0);
   return 1;

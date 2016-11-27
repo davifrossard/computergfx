@@ -12,6 +12,7 @@ Arena* arena;
 unordered_map<int,Car*> enemies;
 unordered_map<string, GLfloat*> colors;
 bool alive = 1, win = 0;
+bool night_mode = 0;
 int current_cam = 0;
 char current_time[10];
 int key_status[256];
@@ -19,34 +20,78 @@ float velTiro, velCarro;
 float eVelTiro, eFreqTiro, eVelCarro;
 float camXY, camXZ, rbdown, c_angle, c_tip;
 
+void headlights() {
+  GLfloat white[4] = { 255, 0, 255, 255};
+  GLfloat dir[4] = {0, -1, -0.5, 0};
+  GLfloat zero[4] = {0, 0.1, 0, 1};
+  sp_state ps = player->get_car_state();
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glTranslatef(ps.position.x, ps.position.y, 0.6);
+  glRotatef(ps.angle*180/M_PIl, 0, 0, 1);
+    glPushMatrix();
+    glTranslatef(0.88877, -1.5, 0.18182);
+      glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, white);
+      glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+      glLightfv(GL_LIGHT0, GL_POSITION, zero);
+      glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+      glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 60);
+      glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 5);
+    glPopMatrix();
+
+    glPushMatrix();
+    glTranslatef(-0.88877, -1.5, 0.18182);
+      glLightfv(GL_LIGHT1, GL_AMBIENT_AND_DIFFUSE, white);
+      glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+      glLightfv(GL_LIGHT1, GL_POSITION, zero);
+      glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir);
+      glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 60);
+      glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 5);
+    glPopMatrix();
+  glPopMatrix();
+
+  glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+  glEnable(GL_LIGHTING);
+}
 
 void keyup(unsigned char key, int x, int y)
 {
     key_status[key] = 0;
-    int i;
+    if(key == 'n' || key == 'N') {
+      if(night_mode) {
+        glDisable(GL_LIGHT0);
+        glDisable(GL_LIGHT1);
+        night_mode = 0;
+        printf("Day mode\n");
+      } else {
+        glEnable(GL_LIGHT0);
+        glEnable(GL_LIGHT1);
+        night_mode = 1;
+        printf("Night mode\n");
+      }
+    }
 }
 
 void keydown(unsigned char key, int x, int y)
 {
     key_status[key] = 1;
-    int i;
 }
 
 void draw()
 {
-  static GLfloat amb[] = {0., 0., 10., 10};
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, amb);
   glEnable(GL_TEXTURE_2D);
-  glPushMatrix();
+
+  /* Draw player and enemies */
   player->draw_car();
   for(auto e: enemies)
   {
     e.second->draw_car();
   }
-  glPopMatrix();
-  glPushAttrib(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_CURRENT_BIT);
+
+  /* Draw Arena */
   arena->draw_arena();
-  glPopAttrib();
+  headlights();
+
   glDisable(GL_TEXTURE_2D);
 }
 
@@ -57,10 +102,10 @@ void third_person_cam()
   float ca = c_angle * M_PI / 180.;
   gluLookAt(ps.position.x-1.95*sin(ps.angle),
             ps.position.y+1.95*cos(ps.angle),
-            ps.position.z+1.95,  /* eye position */
+            ps.position.z+2.55,  /* eye position */
             ps.position.x+60*sin(ps.angle-ca),
             ps.position.y-60*cos(ps.angle-ca),
-            ps.position.z+0.45,      /* lookat */
+            ps.position.z+1.05,      /* lookat */
             0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
   draw();
 }
@@ -91,10 +136,10 @@ void first_person_cam()
   sp_state ps = player->get_car_state();
   gluLookAt(ps.position.x+0.5*cos(ps.angle)-0.3*sin(ps.angle),
             ps.position.y+0.35*cos(ps.angle)+0.5*sin(ps.angle),
-            ps.position.z+0.85,  /* eye position */
+            ps.position.z+1.45,  /* eye position */
             ps.position.x+60*sin(ps.angle),
             ps.position.y-60*cos(ps.angle),
-            ps.position.z+0.45,      /* lookat */
+            ps.position.z+1.05,      /* lookat */
             0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
   draw();
 
@@ -109,7 +154,7 @@ void first_person_cam()
   glLoadIdentity();
   gluLookAt(ps.position.x+2.5*sin(ps.angle),
             ps.position.y-2.5*cos(ps.angle),
-            ps.position.z+3,  /* eye position */
+            ps.position.z+3.6,  /* eye position */
             ps.position.x-60*sin(ps.angle),
             ps.position.y+60*cos(ps.angle),
             ps.position.z+15,      /* lookat */
@@ -118,6 +163,7 @@ void first_person_cam()
 }
 
 void minimap() {
+  glDisable(GL_LIGHTING);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(-40, 40, -40, 40, -5, 5);
@@ -127,6 +173,7 @@ void minimap() {
     glPushAttrib(GL_CURRENT_BIT);
     arena->draw_arena_2d();
     glPopAttrib();
+  glEnable(GL_LIGHTING);
 }
 
 void display() {
@@ -284,7 +331,6 @@ string parseXML(string path)
   return img;
 }
 
-
 int main(int argc, char** argv) {
   // Glut stuff
   glutInit(&argc, argv);
@@ -292,7 +338,7 @@ int main(int argc, char** argv) {
   glutInitWindowSize(1000,1000);
   glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH)-1000)/2,
                          (glutGet(GLUT_SCREEN_HEIGHT)-1000)/2);
-  glutCreateWindow("Assignment 3");
+  glutCreateWindow("Final Assignment");
 
   srand(time(NULL)); // Seed generator
   // Read configuration file
@@ -303,7 +349,13 @@ int main(int argc, char** argv) {
   string buffer = argv[1];
   string arena_file = parseXML(buffer); // Read config.xml
   // Read Arena
-  arena = new Arena(arena_file);
+  GLuint atexture[4];
+  glGenTextures(4, atexture);
+  _load_texture("Textures/ceiling_texture.bmp", atexture[0]);
+  _load_texture("Textures/floor_texture.bmp", atexture[1]);
+  _load_texture("Textures/inner_wall_texture.bmp", atexture[2]);
+  _load_texture("Textures/wall_texture.bmp", atexture[3]);
+  arena = new Arena(arena_file, atexture);
 
   // Create player vehicle
   string car_file = "Obj_Parts/";
@@ -327,6 +379,7 @@ int main(int argc, char** argv) {
 
   // More glut stuff
   glEnable(GL_DEPTH_TEST);
+  glShadeModel(GL_SMOOTH);
   glutDisplayFunc(display);
   glutPassiveMotionFunc(control_cannon);
   glutMotionFunc(control_camera);

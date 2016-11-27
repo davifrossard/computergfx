@@ -139,11 +139,6 @@ void Arena::draw_arena_2d()
 
 void Arena::draw_arena()
 {
-  GLfloat dif_amb[3] = {255., 255., 255.};
-  glPushAttrib(GL_LIGHTING_BIT);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dif_amb);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, dif_amb);
-  GLUquadric* quad = gluNewQuadric();
   glPushMatrix();
   glTranslatef(-outer_circle.center.x/max_attr, -outer_circle.center.y/max_attr, -1);
     //Outer Ring
@@ -170,9 +165,7 @@ void Arena::draw_arena()
     glTranslatef(start.origin.x/max_attr, start.origin.y/max_attr, .1);
       _draw_rectangle(start.h/max_attr, start.w/max_attr, start.color);
     glPopMatrix();
-
   glPopMatrix();
-  glPopAttrib();
 }
 
 float Arena::get_max_attr()
