@@ -110,16 +110,18 @@ void Car::draw_car()
   for (vector<projectile>::iterator p = shots.begin(); p != shots.end(); p++)
   {
     glPushMatrix();
-    glTranslatef(p->origin.x, p->origin.y, p->origin.z);
+    glTranslatef(p->origin.x, p->origin.y, p->origin.z+0.6);
+      glPushAttrib(GL_LIGHTING_BIT);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, car_color);
       _draw_point(car_color);
-    glPopMatrix();
+      glPopAttrib();
     glPopMatrix();
   }
+
   glPushMatrix();
-  glTranslatef(x, y, 0);
+  glTranslatef(x, y, 0.6);
   glRotatef(theta*180/M_PIl, 0, 0, 1);
     chassis.draw();
-
     glPushMatrix();
     glTranslatef(-1.34227, -1.40356, -0.85082);
     glRotatef(-wheel_angle, 0, 0, 1);
@@ -165,7 +167,6 @@ void Car::draw_car()
     glRotatef(-wheel_angle, 0, 1, 0);
       steering_wheel.draw();
     glPopMatrix();
-
   glPopMatrix();
 }
 
