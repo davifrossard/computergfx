@@ -135,18 +135,34 @@ void Arena::draw_arena_2d()
 
 void Arena::draw_arena()
 {
+  GLUquadric* quad = gluNewQuadric();
+
+  GLuint texture_floor, texture_wall, texture_inner_wall, texture_ceiling;
+  texture_floor = LoadTexture("Textures/floor_texture.bmp", 256, 256);
+  texture_wall = LoadTexture("Textures/wall_texture.bmp", 256, 256);
+  texture_inner_wall = LoadTexture("Textures/inner_wall_texture.bmp", 256, 256);
+  texture_ceiling = LoadTexture("Textures/ceiling_texture.bmp", 256, 256);
+
   glPushMatrix();
   glTranslatef(-outer_circle.center.x/max_attr, -outer_circle.center.y/max_attr, -1);
     //Outer Ring
     glPushMatrix();
     glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 0);
-      _draw_circle(outer_circle.r/max_attr, outer_circle.color);
+      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_floor);    
+      _draw_cylinder(8, outer_circle.r/max_attr, texture_wall);
     glPopMatrix();
 
     //Inner Ring
     glPushMatrix();
     glTranslatef(inner_circle.center.x/max_attr, inner_circle.center.y/max_attr, 0.1);
-      _draw_circle(inner_circle.r/max_attr, inner_circle.color);
+      //gluCylinder(quad, inner_circle.r/max_attr, inner_circle.r/max_attr, 8, 100, 100);
+      _draw_cylinder(8, inner_circle.r/max_attr, texture_inner_wall);
+    glPopMatrix();
+
+    //Ceiling
+    glPushMatrix();
+    glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 7);
+      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_ceiling);
     glPopMatrix();
 
     //Starting Point

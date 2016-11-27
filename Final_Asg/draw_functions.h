@@ -9,8 +9,11 @@
 
 using namespace std;
 
+GLuint LoadTexture( const char * filename, int width, int height);
+void _draw_cylinder(double height, double radius, GLuint texture);
 void _draw_circle(GLfloat radius, GLfloat* color);
 void _draw_circle_cont(GLfloat radius, GLfloat* color);
+void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture);
 void _draw_rectangle(GLfloat height, GLfloat width, GLfloat* color);
 void _draw_iso_triangle(GLfloat height, GLfloat width, GLfloat* color);
 void _draw_point(GLfloat* color);
