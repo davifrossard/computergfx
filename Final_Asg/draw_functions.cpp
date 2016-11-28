@@ -58,7 +58,7 @@ void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture, GLfloa
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, texture);
   glBegin(GL_POLYGON);
-  for (angle=0.0; angle<360.0; angle+=2.0) {
+  for (angle=0.0; angle<360.0; angle+=1.0) {
     radian = angle * (M_PIl/180.0f);
 
     xcos = (float)cos(radian);

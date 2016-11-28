@@ -51,23 +51,29 @@ void headlights() {
     glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 2);
 
     glPushMatrix();
-    glTranslatef(0.88877, -1.5, 0.18182);
+    glTranslatef(0.88877, -2.7, 0.18182);
       glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
       glLightfv(GL_LIGHT0, GL_POSITION, zero);
       glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
       glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 40);
       glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 0);
       glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1);
+      glLightfv(GL_LIGHT4, GL_DIFFUSE, white);
+      glLightfv(GL_LIGHT4, GL_POSITION, zero);
+      glLightf(GL_LIGHT4, GL_LINEAR_ATTENUATION, 2);
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef(-0.88877, -1.5, 0.18182);
+    glTranslatef(-0.88877, -2.7, 0.18182);
       glLightfv(GL_LIGHT1, GL_DIFFUSE, white);
       glLightfv(GL_LIGHT1, GL_POSITION, zero);
       glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir);
       glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 40);
       glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 0);
       glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.1);
+      glLightfv(GL_LIGHT5, GL_DIFFUSE, white);
+      glLightfv(GL_LIGHT5, GL_POSITION, zero);
+      glLightf(GL_LIGHT5, GL_LINEAR_ATTENUATION, 2);
     glPopMatrix();
   glPopMatrix();
 
@@ -82,12 +88,16 @@ void keyup(unsigned char key, int x, int y)
       glDisable(GL_LIGHT0);
       glDisable(GL_LIGHT1);
       glDisable(GL_LIGHT2);
+      glDisable(GL_LIGHT4);
+      glDisable(GL_LIGHT5);
       glEnable(GL_LIGHT3);
       night_mode = 0;
     } else {
       glEnable(GL_LIGHT0);
       glEnable(GL_LIGHT1);
       glEnable(GL_LIGHT2);
+      glEnable(GL_LIGHT4);
+      glEnable(GL_LIGHT5);
       glDisable(GL_LIGHT3);
       night_mode = 1;
     }
