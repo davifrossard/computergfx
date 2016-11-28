@@ -1,36 +1,26 @@
 #include "draw_functions.h"
 
-void _draw_cylinder(double height, double radius, GLuint texture)
+void _draw_cylinder(double height, double radius, GLuint texture, GLfloat normal)
 {
-    const double PI = 3.14159;
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  double resolution = 0.01;
 
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    double i, resolution  = 0.01;
-
-    glPushMatrix();
-    glRotatef(90,1,0,0);
-    glPushMatrix();
-    glTranslatef(0, -0.5, 0);
-
+  glPushMatrix();
+  glRotatef(90,1,0,0);
+  glTranslatef(0, -0.5, 0);
     glBegin(GL_QUAD_STRIP);
-        for (i = 0; i <= 2 * PI; i += resolution)
-        {
-            const float tc = ( i / (float)( 2 * PI ) )*50;
-            glTexCoord2f( tc, 0.0 );
-            glVertex3f(radius * cos(i), 0, radius * sin(i));
-            glTexCoord2f( tc, 2.5 );
-            glVertex3f(radius * cos(i), height, radius * sin(i));
-        }
-        glTexCoord2f( 0.0, 0.0 );
-        glVertex3f(radius, 0, 0);
-        glTexCoord2f( 0.0, 1.0 );
-        glVertex3f(radius, height, 0);
+      for (double i = 0; i <= 2 * M_PI; i += resolution) {
+        const float tc = ( i / (float)( 2 * M_PI ) )*50;
+        glTexCoord2f( tc, 0.0 );
+        glVertex3f(radius * cos(i), 0, radius * sin(i));
+        glNormal3f(normal * cos(i), 0, normal * sin(i));
+        glTexCoord2f( tc, 2.5 );
+        glVertex3f(radius * cos(i), height, radius * sin(i));
+        glNormal3f(normal * cos(i), 0, normal * sin(i));
+      }
     glEnd();
-
-    glPopMatrix();
-    glPopMatrix();
+  glPopMatrix();
 }
 
 void _draw_circle(GLfloat radius, GLfloat* color)
@@ -61,27 +51,26 @@ void _draw_circle_cont(GLfloat radius, GLfloat* color)
   glEnd();
 }
 
-void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture)
+void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture, GLfloat normal)
 {
   float angle, radian, x, y, xcos, ysin, tx, ty;
 
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, texture);
   glBegin(GL_POLYGON);
-  for (angle=0.0; angle<360.0; angle+=2.0)
-  {
-      radian = angle * (M_PIl/180.0f);
+  for (angle=0.0; angle<360.0; angle+=2.0) {
+    radian = angle * (M_PIl/180.0f);
 
-      xcos = (float)cos(radian);
-      ysin = (float)sin(radian);
-      x = xcos*radius;
-      y = ysin*radius;
-      tx = xcos*5;
-      ty = ysin*5;
+    xcos = (float)cos(radian);
+    ysin = (float)sin(radian);
+    x = xcos*radius;
+    y = ysin*radius;
+    tx = xcos*5;
+    ty = ysin*5;
 
-      glTexCoord2f(tx, ty);
-      glVertex3f(x, y, 0.);
-      glNormal3f(0., 0., 1.);
+    glTexCoord2f(tx, ty);
+    glVertex3f(x, y, 0.);
+    glNormal3f(0., 0., normal);
   }
   glEnd();
   glDisable(GL_TEXTURE_2D);

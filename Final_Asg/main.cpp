@@ -20,8 +20,24 @@ float velTiro, velCarro;
 float eVelTiro, eFreqTiro, eVelCarro;
 float camXY, camXZ, rbdown, c_angle, c_tip;
 
+
+void sun() {
+  GLfloat amb_white[4] = {.1, .1, .1, 0};
+  GLfloat dif_white[4] = {.7, .7, .7, 1.};
+  GLfloat spe_light[4] = {.5, .0, .5, 1.};
+  GLfloat dir[4] = {0.2, 0.2, 1, 0};
+  glLightfv(GL_LIGHT3, GL_POSITION, dir);
+  glLightfv(GL_LIGHT3, GL_DIFFUSE, dif_white);
+  glLightfv(GL_LIGHT3, GL_AMBIENT, amb_white);
+  glLightfv(GL_LIGHT3, GL_SPECULAR, spe_light);
+
+  glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+  glEnable(GL_LIGHTING);
+}
+
 void headlights() {
-  GLfloat white[4] = { 255, 0, 255, 255};
+  GLfloat white[4] = { 1, 1, 1, 1};
+  GLfloat purple[4] = { 1, 0, 1, 1};
   GLfloat dir[4] = {0, -1, -0.5, 0};
   GLfloat zero[4] = {0, 0.1, 0, 1};
   sp_state ps = player->get_car_state();
@@ -29,47 +45,56 @@ void headlights() {
   glPushMatrix();
   glTranslatef(ps.position.x, ps.position.y, 0.6);
   glRotatef(ps.angle*180/M_PIl, 0, 0, 1);
+    glLightfv(GL_LIGHT2, GL_DIFFUSE, purple);
+    glLightfv(GL_LIGHT2, GL_POSITION, zero);
+    glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, dir);
+    glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 2);
+
     glPushMatrix();
     glTranslatef(0.88877, -1.5, 0.18182);
-      glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, white);
-      glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+      glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
       glLightfv(GL_LIGHT0, GL_POSITION, zero);
       glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
-      glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 60);
-      glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 5);
+      glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 40);
+      glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 0);
+      glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1);
     glPopMatrix();
 
     glPushMatrix();
     glTranslatef(-0.88877, -1.5, 0.18182);
-      glLightfv(GL_LIGHT1, GL_AMBIENT_AND_DIFFUSE, white);
-      glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+      glLightfv(GL_LIGHT1, GL_DIFFUSE, white);
       glLightfv(GL_LIGHT1, GL_POSITION, zero);
       glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir);
-      glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 60);
-      glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 5);
+      glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 40);
+      glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 0);
+      glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.1);
     glPopMatrix();
   glPopMatrix();
 
-  glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
   glEnable(GL_LIGHTING);
 }
 
 void keyup(unsigned char key, int x, int y)
 {
-    key_status[key] = 0;
-    if(key == 'n' || key == 'N') {
-      if(night_mode) {
-        glDisable(GL_LIGHT0);
-        glDisable(GL_LIGHT1);
-        night_mode = 0;
-        printf("Day mode\n");
-      } else {
-        glEnable(GL_LIGHT0);
-        glEnable(GL_LIGHT1);
-        night_mode = 1;
-        printf("Night mode\n");
-      }
+  key_status[key] = 0;
+  if(key == 'n' || key == 'N') {
+    if(night_mode) {
+      glDisable(GL_LIGHT0);
+      glDisable(GL_LIGHT1);
+      glDisable(GL_LIGHT2);
+      glEnable(GL_LIGHT3);
+      night_mode = 0;
+    } else {
+      glEnable(GL_LIGHT0);
+      glEnable(GL_LIGHT1);
+      glEnable(GL_LIGHT2);
+      glDisable(GL_LIGHT3);
+      night_mode = 1;
     }
+  }
+  if(key == 27) {
+    exit(0);
+  }
 }
 
 void keydown(unsigned char key, int x, int y)
@@ -79,39 +104,54 @@ void keydown(unsigned char key, int x, int y)
 
 void draw()
 {
+  headlights();
+  sun();
   glEnable(GL_TEXTURE_2D);
-
   /* Draw player and enemies */
   player->draw_car();
   for(auto e: enemies)
   {
     e.second->draw_car();
   }
-
   /* Draw Arena */
   arena->draw_arena();
-  headlights();
-
   glDisable(GL_TEXTURE_2D);
 }
 
 
 void third_person_cam()
 {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(60.0, /* FOV */
+                 0.8, /* aspect ratio */
+                 0.1, 200.0); /* Z near and far */
+  glMatrixMode(GL_MODELVIEW);
+  glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+  glLoadIdentity();
   sp_state ps = player->get_car_state();
   float ca = c_angle * M_PI / 180.;
+  float ct = c_tip * M_PI / 180.;
   gluLookAt(ps.position.x-1.95*sin(ps.angle),
             ps.position.y+1.95*cos(ps.angle),
             ps.position.z+2.55,  /* eye position */
             ps.position.x+60*sin(ps.angle-ca),
             ps.position.y-60*cos(ps.angle-ca),
-            ps.position.z+1.05,      /* lookat */
+            ps.position.z+2.55+60*sin(ct),      /* lookat */
             0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
   draw();
 }
 
 void mouse_cam()
 {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluPerspective(60.0, /* FOV */
+                 0.8, /* aspect ratio */
+                 0.1, 200.0); /* Z near and far */
+  glMatrixMode(GL_MODELVIEW);
+  glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+  glLoadIdentity();
   sp_state ps = player->get_car_state();
   gluLookAt(ps.position.x + 8*sin(camXY*M_PI/180)*cos(camXZ*M_PI/180),
             ps.position.y - 8*cos(camXY*M_PI/180)*cos(camXZ*M_PI/180),
@@ -131,15 +171,15 @@ void first_person_cam()
                  0.8, /* aspect ratio */
                  0.1, 200.0); /* Z near and far */
   glMatrixMode(GL_MODELVIEW);
-  glViewport(0, 0, 1000, 800);
+  glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), 0.8*glutGet(GLUT_WINDOW_HEIGHT));
   glLoadIdentity();
   sp_state ps = player->get_car_state();
-  gluLookAt(ps.position.x+0.5*cos(ps.angle)-0.3*sin(ps.angle),
+  gluLookAt(ps.position.x+0.5*cos(ps.angle)-0.35*sin(ps.angle),
             ps.position.y+0.35*cos(ps.angle)+0.5*sin(ps.angle),
             ps.position.z+1.45,  /* eye position */
             ps.position.x+60*sin(ps.angle),
             ps.position.y-60*cos(ps.angle),
-            ps.position.z+1.05,      /* lookat */
+            ps.position.z+.85,      /* lookat */
             0.0, 0.0, 1.0);      /* up is (0, 0, 1) */
   draw();
 
@@ -150,7 +190,7 @@ void first_person_cam()
                  0.8, /* aspect ratio */
                  0.1, 200.0); /* Z near and far */
   glMatrixMode(GL_MODELVIEW);
-  glViewport(0, 750, 1000, 1000);
+  glViewport(0, 0.8*glutGet(GLUT_WINDOW_HEIGHT), glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
   glLoadIdentity();
   gluLookAt(ps.position.x+2.5*sin(ps.angle),
             ps.position.y-2.5*cos(ps.angle),
@@ -180,14 +220,6 @@ void display() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  gluPerspective(50.0, /* FOV */
-                 1, /* aspect ratio */
-                 0.1, 200.0); /* Z near and far */
-  glMatrixMode(GL_MODELVIEW);
-  glViewport(0, 0, 1000, 1000);
-  glLoadIdentity();
   if(current_cam == 0) { /* third person cam */
     third_person_cam();
   } else if(current_cam == 1) { /* first person cam */
@@ -197,15 +229,27 @@ void display() {
   }
 
   minimap();
-
   glFlush();
   glutSwapBuffers();
 }
 
 void control_cannon(int x, int y)
 {
-  c_angle = player->turn_cannon(x * (45 - (-45)) / (1000) + (-45));
-  c_tip = player->tip_cannon(((500-y) * 45 / 1000)*3);
+  static int lastx, lasty;
+  if(x > lastx) {
+    c_angle = (c_angle < 45) ? c_angle + 1 : c_angle;
+  } else if (x < lastx) {
+    c_angle = (c_angle > -45) ? c_angle - 1 : c_angle;
+  }
+  if(y > lasty) {
+    c_tip = (c_tip > 0) ? c_tip - 1 : c_tip;
+  } else if (y < lasty) {
+    c_tip = (c_tip < 45) ? c_tip + 1 : c_tip;
+  }
+  c_angle = player->turn_cannon(c_angle);
+  c_tip = player->tip_cannon(c_tip);
+  lastx = x;
+  lasty = y;
 }
 
 void control_camera(int x, int y)
@@ -242,10 +286,10 @@ void shoot_cannon(int button, int state, int mx, int my)
 
 void reshape(int w, int h)
 {
-    if (w > h)
-        glViewport((w-h)/2., 0, (GLsizei) h, (GLsizei) h);
-    else
-        glViewport(0, (h-w)/2., (GLsizei) w, (GLsizei) w);
+  if (w > h)
+      glViewport((w-h)/2., 0, (GLsizei) h, (GLsizei) h);
+  else
+      glViewport(0, (h-w)/2., (GLsizei) w, (GLsizei) w);
 }
 
 void idle(void) {
@@ -380,6 +424,8 @@ int main(int argc, char** argv) {
   // More glut stuff
   glEnable(GL_DEPTH_TEST);
   glShadeModel(GL_SMOOTH);
+  glEnable(GL_LIGHT3);
+  glEnable(GL_NORMALIZE);
   glutDisplayFunc(display);
   glutPassiveMotionFunc(control_cannon);
   glutMotionFunc(control_camera);
