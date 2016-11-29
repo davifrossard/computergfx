@@ -388,7 +388,7 @@ string parseXML(string path)
 int main(int argc, char** argv) {
   // Glut stuff
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowSize(1000,1000);
   glutInitWindowPosition((glutGet(GLUT_SCREEN_WIDTH)-1000)/2,
                          (glutGet(GLUT_SCREEN_HEIGHT)-1000)/2);
