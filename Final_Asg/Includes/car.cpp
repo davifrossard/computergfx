@@ -108,10 +108,13 @@ void Car::shoot()
 
 void Car::draw_car()
 {
+  static int rotate;
   for (vector<projectile>::iterator p = shots.begin(); p != shots.end(); p++)
   {
+    rotate = (rotate + 5) % 360;
     glPushMatrix();
     glTranslatef(p->origin.x, p->origin.y, p->origin.z+0.6);
+    glRotatef(rotate, 0, 0, 1);
       glPushAttrib(GL_LIGHTING_BIT);
       glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, car_color);
       _draw_sphere(stexture);
