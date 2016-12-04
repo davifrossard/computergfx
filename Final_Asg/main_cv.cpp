@@ -239,9 +239,10 @@ void first_person_cam()
 
 
 void minimap() {
-  glPushAttrib(GL_LIGHTING_BIT|GL_DEPTH_BITS);
+  glPushAttrib(GL_LIGHTING_BIT|GL_DEPTH_BITS|GL_TEXTURE_BIT);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
+  glDisable(GL_TEXTURE_2D);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(-40, 40, -40, 40, -1, 1);
@@ -256,9 +257,10 @@ void minimap() {
 
 
 void hud() {
-  glPushAttrib(GL_LIGHTING_BIT|GL_DEPTH_BITS);
+  glPushAttrib(GL_LIGHTING_BIT|GL_DEPTH_BITS|GL_TEXTURE_BIT);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
+  glDisable(GL_TEXTURE_2D);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0, 1, 0, 1, 0, 1);
