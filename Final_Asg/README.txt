@@ -14,6 +14,7 @@ Atalhos:
     * 'N'    ->  Modo noturno (desliga a iluminação do sol, acende os faróis e a
                  lâmpada no interior do carro)
     * 'L'    ->  Liga ou desliga a iluminação do sol
+    * 'T'    ->  Liga ou desliga o uso de texturas
     * WASD   ->  Controla a direção do carro
     * Mouse  ->  Controla o canhão
     * LMB    ->  Dispara o canhão
@@ -30,6 +31,7 @@ Atalhos:
     * 'N'    ->  Modo noturno (desliga a iluminação do sol, acende os faróis e a
                 lâmpada no interior do carro)
     * 'L'    ->  Liga ou desliga a iluminação do sol
+    * 'T'    ->  Liga ou desliga o uso de texturas
     * WASD   ->  Controla a direção do carro
     * ESPAÇO ->  Dispara o canhão
     * 'ESC'  ->  Fecha o jogo

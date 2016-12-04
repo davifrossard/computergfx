@@ -82,7 +82,7 @@ void headlights() {
 
 void keyup(unsigned char key, int x, int y)
 {
-  static int toggle = 0;
+  static int toggle = 0, toggle2 = 0;
   key_status[key] = 0;
   if(key == 'n' || key == 'N') {
     if(night_mode) {
@@ -113,6 +113,14 @@ void keyup(unsigned char key, int x, int y)
     }
     toggle = !toggle;
   }
+  if(key == 't' || key == 'T') {
+    if(toggle) {
+      glEnable(GL_TEXTURE_2D);
+    } else {
+      glDisable(GL_TEXTURE_2D);
+    }
+    toggle = !toggle;
+  }
   if(key == 27) {
     exit(0);
   }
@@ -129,7 +137,6 @@ void draw()
 {
   headlights();
   sun();
-  glEnable(GL_TEXTURE_2D);
   /* Draw player and enemies */
   player->draw_car();
   for(auto e: enemies)
@@ -138,7 +145,6 @@ void draw()
   }
   /* Draw Arena */
   arena->draw_arena();
-  glDisable(GL_TEXTURE_2D);
 }
 
 
@@ -477,6 +483,7 @@ int main(int argc, char** argv) {
 
   // More glut stuff
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_TEXTURE_2D);
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHT3);
   glEnable(GL_NORMALIZE);
