@@ -6,7 +6,7 @@ Igor O. Nunes
 -------------------------------------
 
 Atalhos:
-  # Versão comum (make run, make)
+  # Versão comum (make run, make, ./trabalhocg)
     * '1'    ->  Câmera no cockpit
     * '2'    ->  Câmera no canhão
     * '3 '   ->  Câmera em terceira pessoa com controle do ângulo feito pelo mouse
@@ -20,7 +20,7 @@ Atalhos:
     * LMB    ->  Dispara o canhão
     * 'ESC'  ->  Fecha o jogo
 
-  # Versão com visão computacional (make runcv, make cv)
+  # Versão com visão computacional (make runcv, make cv, ./trabalhocgcv)
     Assim que o jogo é iniciado, uma janela com a imagem da webcam é aberta, basta
     estão escolher um objeto nela usando o mouse (num movimento de seleção) e esse
     então será rastreado, controlando com isso o ângulo do canhão.
