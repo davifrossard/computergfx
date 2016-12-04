@@ -43,7 +43,7 @@ bool Car::update_shots(float inc, unordered_map<int, Car*> *car_enemies, Car* pl
   return 0;
 }
 
-Car::Car(string path, int id, GLfloat* color, Arena* arena, GLuint texture[2])
+Car::Car(string path, int id, GLfloat* color, Arena* arena, GLuint texture[2], GLuint shot_texture)
 {
   if(color == NULL) {
     unordered_map<string, GLfloat*> colors = create_color_table(); //Color hash
@@ -73,6 +73,7 @@ Car::Car(string path, int id, GLfloat* color, Arena* arena, GLuint texture[2])
   wheel.load_obj((path+"wheel.obj").c_str());
   wheel.bind_texture(texture[1]);
 
+  this->stexture = shot_texture;
   this->id = id;
   this->arena = arena;
   theta = atan2(-y, -x);
@@ -112,8 +113,8 @@ void Car::draw_car()
     glPushMatrix();
     glTranslatef(p->origin.x, p->origin.y, p->origin.z+0.6);
       glPushAttrib(GL_LIGHTING_BIT);
-      glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, car_color);
-      _draw_point(car_color);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, car_color);
+      _draw_sphere(stexture);
       glPopAttrib();
     glPopMatrix();
   }

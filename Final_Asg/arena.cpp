@@ -139,25 +139,29 @@ void Arena::draw_arena_2d()
 
 void Arena::draw_arena()
 {
+  GLfloat white[] = {.7, .7, .7, .0};
   glPushMatrix();
   glTranslatef(-outer_circle.center.x/max_attr, -outer_circle.center.y/max_attr, -1);
     //Outer Ring
     glPushMatrix();
     glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 0);
-      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_floor, 1);
-      _draw_cylinder(8, outer_circle.r/max_attr, texture_wall, 1);
+      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_floor, GLU_OUTSIDE);
+      _draw_cylinder(13, outer_circle.r/max_attr, texture_wall, 1);
     glPopMatrix();
 
     //Inner Ring
     glPushMatrix();
     glTranslatef(inner_circle.center.x/max_attr, inner_circle.center.y/max_attr, 0.1);
-      _draw_cylinder(8, inner_circle.r/max_attr, texture_inner_wall, 1);
+      _draw_cylinder(13, inner_circle.r/max_attr, texture_inner_wall, 1);
     glPopMatrix();
 
     //Ceiling
     glPushMatrix();
-    glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 7);
-      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_ceiling, -1);
+    glTranslatef(outer_circle.center.x/max_attr, outer_circle.center.y/max_attr, 12);
+      glPushAttrib(GL_LIGHTING_BIT);
+      glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, white);
+      _draw_circle_texture(outer_circle.r/max_attr, outer_circle.color, texture_ceiling, GLU_INSIDE);
+      glPopAttrib();
     glPopMatrix();
 
     //Starting Point

@@ -24,6 +24,7 @@ class Car
     MeshObject steering_wheel;
     MeshObject wheel;
     GLuint texture[2];
+    GLuint stexture;
 
     int id;
     GLfloat* car_color;
@@ -38,7 +39,7 @@ class Car
     int score = 0, last_checkpoint = 0, expected_checkpoint = 1;
 
   public:
-    Car(string path, int id, GLfloat* color, Arena* arena, GLuint texture[2]);
+    Car(string path, int id, GLfloat* color, Arena* arena, GLuint texture[2], GLuint shot_texture);
     void draw_car();
     float get_axle_track();
     float get_axle_width();

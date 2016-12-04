@@ -9,6 +9,7 @@ using namespace std;
 
 Car* player;
 Arena* arena;
+GLuint etexture[2], atexture[4];
 unordered_map<int,Car*> enemies;
 unordered_map<string, GLfloat*> colors;
 bool alive = 1, win = 0;
@@ -17,6 +18,7 @@ int current_cam = 0;
 char current_time[10];
 int key_status[256];
 float velTiro, velCarro;
+int first_move = -1;
 float eVelTiro, eFreqTiro, eVelCarro;
 float camXY, camXZ, rbdown, c_angle, c_tip;
 
@@ -31,14 +33,14 @@ void sun() {
   glLightfv(GL_LIGHT3, GL_AMBIENT, amb_white);
   glLightfv(GL_LIGHT3, GL_SPECULAR, spe_light);
 
-  glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, 1.0);
+
   glEnable(GL_LIGHTING);
 }
 
 void headlights() {
   GLfloat white[4] = { 1, 1, 1, 1};
   GLfloat purple[4] = { 1, 0, 1, 1};
-  GLfloat dir[4] = {0, -1, -0.5, 0};
+  GLfloat dir[4] = {0, -1, -0.2, 0};
   GLfloat zero[4] = {0, 0.1, 0, 1};
   sp_state ps = player->get_car_state();
   glMatrixMode(GL_MODELVIEW);
@@ -55,7 +57,7 @@ void headlights() {
       glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
       glLightfv(GL_LIGHT0, GL_POSITION, zero);
       glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
-      glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 40);
+      glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 20);
       glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 0);
       glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 0.1);
       glLightfv(GL_LIGHT4, GL_DIFFUSE, white);
@@ -68,7 +70,7 @@ void headlights() {
       glLightfv(GL_LIGHT1, GL_DIFFUSE, white);
       glLightfv(GL_LIGHT1, GL_POSITION, zero);
       glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, dir);
-      glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 40);
+      glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 20);
       glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 0);
       glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.1);
       glLightfv(GL_LIGHT5, GL_DIFFUSE, white);
@@ -92,6 +94,7 @@ void keyup(unsigned char key, int x, int y)
       glDisable(GL_LIGHT5);
       glEnable(GL_LIGHT3);
       night_mode = 0;
+      _load_texture("Textures/ceiling_texture.bmp", atexture[0]);
     } else {
       glEnable(GL_LIGHT0);
       glEnable(GL_LIGHT1);
@@ -100,6 +103,7 @@ void keyup(unsigned char key, int x, int y)
       glEnable(GL_LIGHT5);
       glDisable(GL_LIGHT3);
       night_mode = 1;
+      _load_texture("Textures/nightsky.bmp", atexture[0]);
     }
   }
   if(key == 27) {
@@ -109,7 +113,9 @@ void keyup(unsigned char key, int x, int y)
 
 void keydown(unsigned char key, int x, int y)
 {
-    key_status[key] = 1;
+  key_status[key] = 1;
+  if(first_move < 0)
+    first_move = glutGet(GLUT_ELAPSED_TIME);
 }
 
 void draw()
@@ -226,6 +232,23 @@ void minimap() {
   glEnable(GL_LIGHTING);
 }
 
+
+void hud() {
+  glDisable(GL_LIGHTING);
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(0, 1, 0, 1, 0, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glViewport(0, 0, 1000, 1000);
+    glLoadIdentity();
+    glPushAttrib(GL_CURRENT_BIT);
+      _draw_text(.9, 0.95, current_time, colors["white"]);
+      if(!alive) _draw_text(.9, 0.93, "MORREU", colors["red"], GLUT_BITMAP_HELVETICA_18);
+      if(win) _draw_text(.9, 0.93, "GANHOU", colors["green"], GLUT_BITMAP_HELVETICA_18);
+    glPopAttrib();
+  glEnable(GL_LIGHTING);
+}
+
 void display() {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -239,6 +262,7 @@ void display() {
   }
 
   minimap();
+  hud();
   glFlush();
   glutSwapBuffers();
 }
@@ -312,9 +336,9 @@ void idle(void) {
   if(alive && !win) {
     tuple<float, float> result;
     if(key_status['a'] == 1 || key_status['A'] == 1) {
-      player->turn_wheel(-5);
+      player->turn_wheel(-4);
     } if(key_status['d'] == 1 || key_status['D'] == 1) {
-      player->turn_wheel(5);
+      player->turn_wheel(4);
   	} if(key_status['w'] == 1 || key_status['W'] == 1) {
       win = player->forward(-velCarro * elapsed_time);
   	} if(key_status['s'] == 1 || key_status['S'] == 1) {
@@ -342,9 +366,10 @@ void idle(void) {
       }
     }
     if(res_count) cont = 0;
-    int seconds = last_time / 1000;
+    int counter = first_move > 0 ? glutGet(GLUT_ELAPSED_TIME) - first_move : 0;
+    int seconds = counter / 1000;
     int minutes = seconds / 60;
-    sprintf(current_time, "%02d:%02d:%02d", minutes, seconds%60, (int)last_time%1000);
+    sprintf(current_time, "%02d:%02d:%02d", minutes, seconds%60, counter%1000);
     last_time = glutGet(GLUT_ELAPSED_TIME);
     glutPostRedisplay();
   }
@@ -402,8 +427,8 @@ int main(int argc, char** argv) {
   }
   string buffer = argv[1];
   string arena_file = parseXML(buffer); // Read config.xml
+
   // Read Arena
-  GLuint atexture[4];
   glGenTextures(4, atexture);
   _load_texture("Textures/ceiling_texture.bmp", atexture[0]);
   _load_texture("Textures/floor_texture.bmp", atexture[1]);
@@ -413,29 +438,39 @@ int main(int argc, char** argv) {
 
   // Create player vehicle
   string car_file = "Obj_Parts/";
-  GLuint ptexture[2];
-  glGenTextures(2, ptexture);
+  GLuint ptexture[3], shot_texture;
+  glGenTextures(3, ptexture);
   _load_texture((car_file+"tex1.bmp").c_str(), ptexture[0]);
   _load_texture((car_file+"tex2.bmp").c_str(), ptexture[1]);
-  player = new Car(car_file, -1, NULL, arena, ptexture);
+  _load_texture((car_file+"tex5.bmp").c_str(), shot_texture);
+  player = new Car(car_file, -1, NULL, arena, ptexture, shot_texture);
+
   // Create enemy vehicles
-  GLuint etexture[2];
   glGenTextures(2, etexture);
   _load_texture((car_file+"tex3.bmp").c_str(), etexture[0]);
   _load_texture((car_file+"tex4.bmp").c_str(), etexture[1]);
   for(auto ek : arena->get_enemies()) {
-    Car* enemy = new Car(car_file, ek.first, ek.second.color, arena, etexture);
+    Car* enemy = new Car(car_file, ek.first, ek.second.color, arena, etexture, shot_texture);
     enemies[ek.first] = enemy;
   }
 
   // Color table
   colors = create_color_table(); //Color hash
 
+  // Adjust constants
+  float sqr = sqrt(arena->get_max_attr());
+  velTiro /= sqr;
+  velCarro /= sqr;
+  eFreqTiro /= sqr;
+  eVelTiro /= sqr;
+  eVelCarro /= sqr;
+
   // More glut stuff
   glEnable(GL_DEPTH_TEST);
   glShadeModel(GL_SMOOTH);
   glEnable(GL_LIGHT3);
   glEnable(GL_NORMALIZE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   glutDisplayFunc(display);
   glutPassiveMotionFunc(control_cannon);
   glutMotionFunc(control_camera);

@@ -2,7 +2,6 @@
 
 void _draw_cylinder(double height, double radius, GLuint texture, GLfloat normal)
 {
-  glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, texture);
   double resolution = 0.01;
 
@@ -19,6 +18,13 @@ void _draw_cylinder(double height, double radius, GLuint texture, GLfloat normal
         glVertex3f(radius * cos(i), height, radius * sin(i));
         glNormal3f(normal * cos(i), 0, normal * sin(i));
       }
+      glTexCoord2f( 50, 0.0);
+      glVertex3f(radius, 0, 0);
+      glNormal3f(normal, 0, 0);
+
+      glTexCoord2f( 50, 2.5);
+      glNormal3f(normal, 0, 0);
+      glVertex3f(radius, height, 0);
     glEnd();
   glPopMatrix();
 }
@@ -51,29 +57,20 @@ void _draw_circle_cont(GLfloat radius, GLfloat* color)
   glEnd();
 }
 
-void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture, GLfloat normal)
+void _draw_circle_texture(GLfloat radius, GLfloat* color, GLuint texture, GLenum normal)
 {
   float angle, radian, x, y, xcos, ysin, tx, ty;
-
-  glEnable(GL_TEXTURE_2D);
+  GLUquadric* circ = gluNewQuadric();
   glBindTexture(GL_TEXTURE_2D, texture);
-  glBegin(GL_POLYGON);
-  for (angle=0.0; angle<360.0; angle+=1.0) {
-    radian = angle * (M_PIl/180.0f);
-
-    xcos = (float)cos(radian);
-    ysin = (float)sin(radian);
-    x = xcos*radius;
-    y = ysin*radius;
-    tx = xcos*5;
-    ty = ysin*5;
-
-    glTexCoord2f(tx, ty);
-    glVertex3f(x, y, 0.);
-    glNormal3f(0., 0., normal);
-  }
-  glEnd();
-  glDisable(GL_TEXTURE_2D);
+  gluQuadricTexture(circ, true);
+  gluQuadricOrientation(circ, GLU_INSIDE);
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+  glPushMatrix();
+  glScalef(15, 15, 1);
+  gluDisk(circ,  0, radius, 100, 100);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
 }
 
 void _draw_rectangle(GLfloat height, GLfloat width, GLfloat* color)
@@ -104,11 +101,18 @@ void _draw_iso_triangle(GLfloat height, GLfloat width, GLfloat* color)
 void _draw_point(GLfloat* color)
 {
   glPushAttrib(GL_CURRENT_BIT);
-  glBegin(GL_POINTS);
-    glColor3fv(color);
-    glutSolidSphere(0.1, 20, 20);
-  glEnd();
+  glColor3fv(color);
+  glutSolidSphere(0.1, 20, 20);
   glPopAttrib();
+}
+
+void _draw_sphere(GLuint texture)
+{
+  GLUquadricObj *obj = gluNewQuadric();
+  gluQuadricTexture(obj, true);
+  gluQuadricOrientation(obj, GLU_OUTSIDE);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  gluSphere(obj, 0.1, 20, 20);
 }
 
 void _draw_text(GLfloat x, GLfloat y, char* str, GLfloat* color, void* font)
