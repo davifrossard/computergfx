@@ -3,8 +3,8 @@
 #include <vector>
 #include <tuple>
 #include <ctime>
-#include "car.h"
-#include "arena.h"
+#include "Includes/car.h"
+#include "Includes/arena.h"
 using namespace std;
 
 Car* player;
@@ -390,7 +390,7 @@ string parseXML(string path)
 {
   const char * const configs[9] = {"arquivoDaArena", "nome", "tipo", "caminho", "carro", "velTiro", "velCarro", "carroInimigo", "freqTiro"};
   TiXmlDocument config;
-  path += "config.xml";
+  path += "/config.xml";
   config.LoadFile(path.c_str());
   TiXmlElement* root = config.FirstChildElement();
   if(!root) {
