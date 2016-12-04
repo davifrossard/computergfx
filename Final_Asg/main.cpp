@@ -24,16 +24,14 @@ float camXY, camXZ, rbdown, c_angle, c_tip;
 
 
 void sun() {
-  GLfloat amb_white[4] = {.1, .1, .1, 0};
+  GLfloat amb_white[4] = {.3, .3, .3, 0};
   GLfloat dif_white[4] = {.7, .7, .7, 1.};
   GLfloat spe_light[4] = {.5, .0, .5, 1.};
-  GLfloat dir[4] = {0.2, 0.2, 1, 0};
+  GLfloat dir[4] = {0.3, 0.3, 1, 0};
   glLightfv(GL_LIGHT3, GL_POSITION, dir);
   glLightfv(GL_LIGHT3, GL_DIFFUSE, dif_white);
   glLightfv(GL_LIGHT3, GL_AMBIENT, amb_white);
   glLightfv(GL_LIGHT3, GL_SPECULAR, spe_light);
-
-
   glEnable(GL_LIGHTING);
 }
 
@@ -84,6 +82,7 @@ void headlights() {
 
 void keyup(unsigned char key, int x, int y)
 {
+  static int toggle = 0;
   key_status[key] = 0;
   if(key == 'n' || key == 'N') {
     if(night_mode) {
@@ -105,6 +104,14 @@ void keyup(unsigned char key, int x, int y)
       night_mode = 1;
       _load_texture("Textures/nightsky.bmp", atexture[0]);
     }
+  }
+  if(key == 'l' || key == 'L') {
+    if(toggle) {
+      glEnable(GL_LIGHT3);
+    } else {
+      glDisable(GL_LIGHT3);
+    }
+    toggle = !toggle;
   }
   if(key == 27) {
     exit(0);
@@ -219,34 +226,37 @@ void first_person_cam()
 }
 
 void minimap() {
+  glPushAttrib(GL_LIGHTING_BIT|GL_DEPTH_BITS);
+  glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(-40, 40, -40, 40, -5, 5);
+  glOrtho(-40, 40, -40, 40, -1, 1);
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, 250, 250);
+    glViewport(0.75*glutGet(GLUT_WINDOW_WIDTH), 0, 0.25*glutGet(GLUT_WINDOW_WIDTH), 0.25*glutGet(GLUT_WINDOW_HEIGHT));
     glLoadIdentity();
     glPushAttrib(GL_CURRENT_BIT);
     arena->draw_arena_2d();
     glPopAttrib();
-  glEnable(GL_LIGHTING);
+  glPopAttrib();
 }
 
-
 void hud() {
+  glPushAttrib(GL_LIGHTING_BIT|GL_DEPTH_BITS);
+  glDisable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glOrtho(0, 1, 0, 1, 0, 1);
     glMatrixMode(GL_MODELVIEW);
-    glViewport(0, 0, 1000, 1000);
+    glViewport(0, 0, glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
     glLoadIdentity();
     glPushAttrib(GL_CURRENT_BIT);
       _draw_text(.9, 0.95, current_time, colors["white"]);
       if(!alive) _draw_text(.9, 0.93, "MORREU", colors["red"], GLUT_BITMAP_HELVETICA_18);
       if(win) _draw_text(.9, 0.93, "GANHOU", colors["green"], GLUT_BITMAP_HELVETICA_18);
     glPopAttrib();
-  glEnable(GL_LIGHTING);
+  glPopAttrib();
 }
 
 void display() {
@@ -254,15 +264,15 @@ void display() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   if(current_cam == 0) { /* third person cam */
-    third_person_cam();
-  } else if(current_cam == 1) { /* first person cam */
     first_person_cam();
+  } else if(current_cam == 1) { /* first person cam */
+    third_person_cam();
   } else if(current_cam == 2) {
     mouse_cam(); /* mouse controlled camera */
   }
 
-  minimap();
   hud();
+  minimap();
   glFlush();
   glutSwapBuffers();
 }

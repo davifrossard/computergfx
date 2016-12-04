@@ -203,7 +203,7 @@ void Car::auto_turn_cannon()
 
 bool Car::forward(float inc)
 {
-  wheel_mark = int(wheel_mark + -5) % 360;
+  wheel_mark = (int)(wheel_mark+(inc / 0.7) * 180 / M_PIl) % 360;
   float thetap = theta + inc / this->get_axle_track() * tan(wheel_angle * M_PIl/180);
   float xp = x + inc * sin(-thetap);
   float yp = y + inc * cos(-thetap);
@@ -240,7 +240,7 @@ void Car::auto_forward(float inc)
     sig_inc = 1;
   }
   inc *= sig_inc;
-  wheel_mark = wheel_mark > 0 ? wheel_mark - 5 : 180;
+  wheel_mark = (int)(wheel_mark+(inc / 0.7) * 180 / M_PIl) % 360;
 
   // Calculate correct wheel angle
   float rho = sqrt(pow(y,2)+pow(x,2));
@@ -264,7 +264,7 @@ void Car::auto_forward(float inc)
 
 bool Car::back(float inc)
 {
-  wheel_mark = int(wheel_mark + 5) % 360;
+  wheel_mark = (int)(wheel_mark+(inc / 0.7) * 180 / M_PIl) % 360;
   float thetap = theta + inc / this->get_axle_track() * tan(wheel_angle * M_PIl/180);
   float xp = x + inc * sin(-thetap);
   float yp = y + inc * cos(-thetap);
